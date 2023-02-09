@@ -1,11 +1,11 @@
 __title__ = 'datclass'
 __author__ = 'foyoux'
 __version__ = '0.0.1'
-__all__ = ['DatClass', 'main']
+__all__ = ['main', 'DatClass', 'MetaClass']
 
 import argparse
 
-from datclass.datclass import DatClass
+from datclass.datclass import DatClass, MetaClass
 
 
 def main():
