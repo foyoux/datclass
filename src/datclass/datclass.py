@@ -20,8 +20,8 @@ class MetaClass(type):
 @dataclass
 class DatClass:
     def __post_init__(self):
-        attrs = get_type_hints(self)
-        for attr_name, attr_type in attrs.items():
+        hints = get_type_hints(self)
+        for attr_name, attr_type in hints.items():
             origin = get_origin(attr_type)
             if origin is None and is_dataclass(attr_type):
                 setattr(self, attr_name, attr_type(**getattr(self, attr_name)))
