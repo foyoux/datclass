@@ -76,9 +76,9 @@ dat = {
 }
 ```
 
-程序将会抛出 `TypeError: User.__init__() got an unexpected keyword argument 'sex'` 错误，原因就是定义的字段少于实际给出的
+程序将会抛出 `TypeError: User.__init__() got an unexpected keyword argument 'sex'` 错误，原因就是定义的字段少于实际给出的。
 
-解决这个问题的办法设置 metaclass，新代码如下
+解决这个问题的办法设置 metaclass，新代码如下：
 
 ```py
 from dataclasses import dataclass, field
