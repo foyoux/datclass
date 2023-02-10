@@ -19,17 +19,17 @@ pip install git+https://github.com/foyoux/datclass.git
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-from datclass import DatClass
+from datclass import Nested
 
 
 @dataclass
-class User(DatClass):
+class User(Nested):
     name: str = None
     age: int = None
 
 
 @dataclass
-class Group(DatClass):
+class Group(Nested):
     name: str = None
     users: List[User] = field(default_factory=list)
     meta: Dict = field(default_factory=dict)
@@ -84,17 +84,17 @@ dat = {
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-from datclass import DatClass, MetaClass
+from datclass import Nested, Extra
 
 
 @dataclass
-class User(DatClass, metaclass=MetaClass):
+class User(Nested, metaclass=Extra):
     name: str = None
     age: int = None
 
 
 @dataclass
-class Group(DatClass, metaclass=MetaClass):
+class Group(Nested, metaclass=Extra):
     name: str = None
     users: List[User] = field(default_factory=list)
     meta: Dict = field(default_factory=dict)
