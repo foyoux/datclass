@@ -8,7 +8,7 @@ import argparse
 from dataclasses import dataclass, is_dataclass
 from typing import get_type_hints, get_origin, get_args
 
-_ORIGIN_INIT = '__dataclass_init'
+_ORIGIN_INIT = '__dataclass_init__'
 
 
 def _datclass_init(self, *args, **kwargs):
