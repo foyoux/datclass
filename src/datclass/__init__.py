@@ -6,7 +6,7 @@ __all__ = ['main', 'DatClass']
 import argparse
 
 from dataclasses import dataclass, is_dataclass
-from typing import get_type_hints, get_origin, get_args
+from typing import get_origin, get_args
 
 _ORIGIN_INIT = '__dataclass_init__'
 
@@ -30,8 +30,8 @@ class DatClass:
         return obj
 
     def __post_init__(self, *args, **kwargs):
-        hints = get_type_hints(self)
-        for attr_name, attr_type in hints.items():
+        for attr_name, field in self.__dataclass_fields__.items():  # type: ignore
+            attr_type = field.type
             origin = get_origin(attr_type)
             if origin is None and is_dataclass(attr_type):
                 setattr(self, attr_name, attr_type(**getattr(self, attr_name)))
