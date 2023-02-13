@@ -8,11 +8,11 @@ import argparse
 from dataclasses import dataclass, is_dataclass
 from typing import get_origin, get_args
 
-_ORIGIN_INIT = '__dataclass_init__'
+_ORIGINAL_INIT = '__dataclass_init__'
 
 
 def _datclass_init(self, *args, **kwargs):
-    getattr(self, _ORIGIN_INIT)(
+    getattr(self, _ORIGINAL_INIT)(
         *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
     )
     for attr, value in kwargs.items():
@@ -24,8 +24,8 @@ class DatClass:
 
     def __new__(cls, *args, **kwargs):
         obj = super().__new__(cls)
-        if not hasattr(cls, _ORIGIN_INIT):
-            setattr(cls, _ORIGIN_INIT, cls.__init__)
+        if not hasattr(cls, _ORIGINAL_INIT):
+            setattr(cls, _ORIGINAL_INIT, cls.__init__)
             setattr(cls, '__init__', _datclass_init)
         return obj
 
