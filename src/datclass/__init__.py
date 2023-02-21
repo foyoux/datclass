@@ -41,6 +41,25 @@ class DatClass:
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
 
 
+def get_v_type(v):
+    if isinstance(v, dict):
+        return Dict
+    if isinstance(v, list):
+        t_set = set()
+        for i in v:
+            if isinstance(i, dict):
+                t_set.add(dict)
+            elif isinstance(i, list):
+                t_set.add(list)
+            else:
+                t_set.add(type(i))
+        if len(t_set) == 1:
+            return List[t_set.pop()]
+        else:
+            return List
+    return type(v)
+
+
 def merge_list_dict(list_dict: List[dict]) -> Dict:
     if not isinstance(list_dict, list):
         raise TypeError(f'({list_dict}) is not list_dict')
