@@ -139,18 +139,18 @@ def main():
 
     parser.add_argument('-n', '--name', help='main dat class name', default='Object')
     parser.add_argument('-r', '--recursive', help='recursive generate dat class', action='store_true')
-    parser.add_argument('-f', '--input', help='input file - likes-json')
     parser.add_argument('-o', '--output', help='output file - *.py')
+    parser.add_argument('file', nargs='?', help='input file - likes-json')
 
     args = parser.parse_args()
 
     name = args.name
     recursive = args.recursive
-    input_ = args.input
+    file = args.file
     output = args.output
 
-    if input_:
-        f = Path(input_)
+    if file:
+        f = Path(file)
         if not f.exists():
             print(f'{f.absolute()} not exists')
             return
