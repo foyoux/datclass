@@ -58,3 +58,20 @@ if __name__ == '__main__':
 ```
 
 </details>
+
+## `datclass` command
+
+```sh
+usage: datclass [-h] [-v] [-n NAME] [-r] [-o OUTPUT] [file]
+
+positional arguments:
+  file                  input file - likes-json
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  -n NAME, --name NAME  main dat class name
+  -r, --recursive       recursive generate dat class
+  -o OUTPUT, --output OUTPUT
+                        output file - *.py
+```
