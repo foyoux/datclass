@@ -69,6 +69,14 @@ def get_t_default(t):
     return 'None'
 
 
+def get_t_string(t):
+    if t is Dict:
+        return 'Dict'
+    if get_origin(t) is list:
+        return f'List[{", ".join([get_t_string(i) for i in get_args(t)])}]'
+    return t.__name__
+
+
 def merge_list_dict(list_dict: List[dict]) -> Dict:
     if not isinstance(list_dict, list):
         raise TypeError(f'({list_dict}) is not list_dict')
