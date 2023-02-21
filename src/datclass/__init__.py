@@ -7,7 +7,7 @@ import argparse
 import json
 from dataclasses import dataclass, is_dataclass
 from pathlib import Path
-from typing import get_origin, get_args, List, Dict
+from typing import get_origin, get_args, List, Dict, Union
 
 _ORIGINAL_INIT = '__dataclass_init__'
 
@@ -69,23 +69,17 @@ def get_t_default(t):
     return 'None'
 
 
-def _get_list_element_t_string(t_tuple, list_dict_str=None):
-    t_list = []
-    for t in t_tuple:
-        if t is dict:
-            t_s = list_dict_str if list_dict_str else 'dict'
-        else:
-            t_s = t.__name__
-        t_list.append(t_s)
-    return ', '.join(t_list)
-
-
-def get_t_string(t, list_dict_str=None):
+def get_t_string(t):
     if t is Dict:
         return 'Dict'
     if get_origin(t) is list:
-        return f'List[{_get_list_element_t_string(get_args(t), list_dict_str)}]'
+        st = get_args(t)
+        return f'List[{get_t_string(st[0])}]' if st else 'List'
     return t.__name__
+
+
+def get_cls_name(field_name: str):
+    return field_name.title()
 
 
 def merge_list_dict(list_dict: List[dict]) -> Dict:
@@ -101,6 +95,41 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
             elif not d[k] and v:
                 d[k] = v
     return d
+
+
+imports = [
+    'from dataclasses import dataclass, field',
+    'from typing import List, Dict', '',
+    'from datclass import DatClass', '', '',
+]
+
+
+def gen_datclass(dat: Union[list, dict], name='Object', recursive=False):
+    """
+    :param dat: list or dict data
+    :param name: main dat class name
+    :param recursive: recursive generate dat class
+    """
+    try:
+        dat = merge_list_dict(dat)
+    except TypeError:
+        pass
+    codes = ['@dataclass', f'class {name}(DatClass):']
+
+    for k, v in dat.items():
+        v_t = get_v_type(v)
+        v_d = get_t_default(v_t)
+        t_s = get_t_string(v_t)
+        if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
+            s = get_cls_name(k)
+            if isinstance(v, dict):
+                t_s = s
+            elif t_s == 'List[dict]':
+                t_s = f'List[{s}]'
+            codes = gen_datclass(v, s, recursive=True) + ['', ''] + codes
+        codes.append(f'    {k}: {t_s} = {v_d}')
+
+    return codes
 
 
 def main():
@@ -131,7 +160,7 @@ def main():
         data = []
         try:
             while True:
-                data.append(input(str(len(data) + 1)))
+                data.append(input('{:>4}. '.format(len(data) + 1)))
         except KeyboardInterrupt:
             text = '\n'.join(data)
 
@@ -141,8 +170,8 @@ def main():
         print('无效 JSON 数据')
         return
 
-    # TODO
-    dat = ''
+    dat = gen_datclass(body, name, recursive)
+    dat = imports + dat + ['']
 
     if output:
         f = Path(output)
