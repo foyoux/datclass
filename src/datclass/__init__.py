@@ -7,7 +7,7 @@ import argparse
 import json
 from dataclasses import dataclass, is_dataclass
 from pathlib import Path
-from typing import get_origin, get_args
+from typing import get_origin, get_args, List, Dict
 
 _ORIGINAL_INIT = '__dataclass_init__'
 
@@ -39,6 +39,21 @@ class DatClass:
                 continue
             for item_type in get_args(attr_type):
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
+
+
+def merge_list_dict(list_dict: List[dict]) -> Dict:
+    if not isinstance(list_dict, list):
+        raise TypeError(f'({list_dict}) is not list_dict')
+    d = {}
+    for i in list_dict:
+        if not isinstance(i, dict):
+            raise TypeError(f'element({i}) of list_dict is not dict')
+        for k, v in i.items():
+            if k not in d:
+                d[k] = v
+            elif not d[k] and v:
+                d[k] = v
+    return d
 
 
 def main():
