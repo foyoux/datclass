@@ -60,6 +60,13 @@ def get_v_type(v):
     return type(v)
 
 
+def get_v_default(t):
+    a = get_origin(t)
+    if a is list:
+        return 'field(default_factory=list)'
+    return 'None'
+
+
 def merge_list_dict(list_dict: List[dict]) -> Dict:
     if not isinstance(list_dict, list):
         raise TypeError(f'({list_dict}) is not list_dict')
