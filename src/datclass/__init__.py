@@ -78,7 +78,7 @@ def get_t_string(t):
     return t.__name__
 
 
-def get_cls_name(field_name: str):
+def get_nice_cls_name(field_name: str):
     return field_name.title()
 
 
@@ -121,7 +121,7 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False):
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
         if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            s = get_cls_name(k)
+            s = get_nice_cls_name(k)
             if isinstance(v, dict):
                 t_s = s
             elif t_s == 'List[dict]':
