@@ -69,11 +69,22 @@ def get_t_default(t):
     return 'None'
 
 
-def get_t_string(t):
+def _get_list_element_t_string(t_tuple, list_dict_str=None):
+    t_list = []
+    for t in t_tuple:
+        if t is dict:
+            t_s = list_dict_str if list_dict_str else 'dict'
+        else:
+            t_s = t.__name__
+        t_list.append(t_s)
+    return ', '.join(t_list)
+
+
+def get_t_string(t, list_dict_str=None):
     if t is Dict:
         return 'Dict'
     if get_origin(t) is list:
-        return f'List[{", ".join([get_t_string(i) for i in get_args(t)])}]'
+        return f'List[{_get_list_element_t_string(get_args(t), list_dict_str)}]'
     return t.__name__
 
 
