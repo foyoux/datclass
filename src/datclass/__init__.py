@@ -156,7 +156,7 @@ def main():
             return
         text = f.read_text()
     else:
-        print('请粘贴 JSON 字符串：CTRL + C 结束')
+        print('Please paste the JSON string: CTRL + C end')
         data = []
         try:
             while True:
@@ -167,7 +167,7 @@ def main():
     try:
         body = json.loads(text)
     except json.JSONDecodeError:
-        print('无效 JSON 数据')
+        print('\nInvalid JSON data')
         return
 
     dat = gen_datclass(body, name, recursive)
