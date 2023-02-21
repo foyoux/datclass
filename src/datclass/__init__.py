@@ -171,7 +171,7 @@ def main():
         return
 
     dat = gen_datclass(body, name, recursive)
-    dat = imports + dat + ['']
+    dat = '\n'.join(imports + dat + [''])
 
     if output:
         f = Path(output)
