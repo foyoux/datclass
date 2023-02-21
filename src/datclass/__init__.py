@@ -41,7 +41,9 @@ class DatClass:
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
 
 
-def get_v_type(v):
+def get_v_type(v, none_type=str):
+    if v is None:
+        return none_type
     if isinstance(v, dict):
         return Dict
     if isinstance(v, list):
@@ -60,9 +62,9 @@ def get_v_type(v):
     return type(v)
 
 
-def get_v_default(t):
-    a = get_origin(t)
-    if a is list:
+def get_t_default(t):
+    o_t = get_origin(t)
+    if o_t is list:
         return 'field(default_factory=list)'
     return 'None'
 

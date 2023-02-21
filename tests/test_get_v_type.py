@@ -15,3 +15,5 @@ def test_get_v_type():
     assert get_v_type({'a': 'b'}) == Dict
     assert get_v_type([{}]) == List[dict]
     assert get_v_type([123, 4354]) == List[int]
+    assert get_v_type(None) == str
+    assert get_v_type(None, int) == int
