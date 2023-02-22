@@ -5,6 +5,7 @@ __all__ = ['main', 'DatClass']
 
 import argparse
 import json
+import os
 from dataclasses import dataclass, is_dataclass
 from pathlib import Path
 from typing import get_origin, get_args, List, Dict, Union
@@ -156,12 +157,12 @@ def main():
             return
         text = f.read_text()
     else:
-        print('Please paste the JSON string: CTRL + C end')
+        print(f'Please paste the JSON string - {"Ctrl-Z" if os.name == "nt" else "Ctrl-D"} Return')
         data = []
         try:
             while True:
-                data.append(input('{:>4}. '.format(len(data) + 1)))
-        except KeyboardInterrupt:
+                data.append(input())
+        except EOFError:
             text = '\n'.join(data)
 
     try:
@@ -178,6 +179,7 @@ def main():
         f.parent.mkdir(exist_ok=True, parents=True)
         f.write_text(dat)
     else:
+        print()
         print(dat)
 
     print('🎉 Generate successful')
