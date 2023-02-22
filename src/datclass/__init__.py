@@ -37,8 +37,8 @@ class DatClass:
         return obj
 
     def __post_init__(self, *args, **kwargs):
-        for attr_name, field in self.__dataclass_fields__.items():  # type: ignore
-            attr_type = field.type
+        for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
+            attr_type = FIELD.type
             origin = get_origin(attr_type)
             if origin is None and is_dataclass(attr_type):
                 setattr(self, attr_name, attr_type(**getattr(self, attr_name)))
