@@ -164,6 +164,9 @@ def main():
                 data.append(input())
         except EOFError:
             text = '\n'.join(data)
+        except KeyboardInterrupt:
+            print('\n🎉 Bye-Bye')
+            return
 
     try:
         body = json.loads(text)
