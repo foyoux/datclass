@@ -85,7 +85,7 @@ def get_t_string(t):
 
 
 def get_nice_cls_name(field_name: str):
-    return field_name.title()
+    return field_name.title().replace('_', '')
 
 
 def merge_list_dict(list_dict: List[dict]) -> Dict:
