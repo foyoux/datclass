@@ -1,14 +1,19 @@
 __title__ = 'datclass'
 __author__ = 'foyoux'
 __version__ = '0.0.1'
-__all__ = ['main', 'DatClass']
+__all__ = ['main', 'DatClass', 'List', 'Dict', 'Union', 'get_origin', 'get_args', 'dataclass', 'field', 'is_dataclass']
 
 import argparse
 import json
 import os
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass, is_dataclass, field
 from pathlib import Path
-from typing import get_origin, get_args, List, Dict, Union
+from typing import List, Dict, Union
+
+try:
+    from typing import get_origin, get_args
+except ImportError:
+    from typing_extensions import get_origin, get_args
 
 _ORIGINAL_INIT = '__dataclass_init__'
 
@@ -99,9 +104,7 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
 
 
 imports = [
-    'from dataclasses import dataclass, field',
-    'from typing import List, Dict', '',
-    'from datclass import DatClass', '', '',
+    'from datclass import dataclass, field, List, Dict, DatClass', '', '',
 ]
 
 
