@@ -50,7 +50,7 @@ dat = """
         "offset": 0,
         "length": 47,
         "type": "text_link",
-        "url": "https://t.me/kaiyuntiyu1888"
+        "url": "https://github.com/foyoux/datclass"
       }
     ]
   }

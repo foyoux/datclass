@@ -135,7 +135,7 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
     """
     :param dat: list or dict data
     :param name: main dat class name
-    :param recursive: recursive generate dat class
+    :param recursive: recursive generate datclass
     :param dict_: generate TypedDict class
     """
     try:
@@ -175,6 +175,34 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
     return codes
 
 
+def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False):
+    try:
+        dat = merge_list_dict(dat)
+    except TypeError:
+        pass
+    imports.TypedDict = True
+    codes = []
+    n_t_dict = {}
+    for k, v in dat.items():
+        v_t = get_v_type(v)
+        t_s = get_t_string(v_t)
+        if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
+            s = get_nice_cls_name(k)
+            if isinstance(v, dict):
+                t_s = s
+            elif t_s == 'List[dict]':
+                t_s = f'List[{s}]'
+            codes = gen_typed_dict(v, s, recursive=True) + codes
+        if not imports.Dict and t_s == 'Dict':
+            imports.Dict = True
+        if not imports.List and t_s.startswith('List'):
+            imports.List = True
+        n_t_dict[k] = t_s
+    s = ', '.join([f'\'{k}\': {v}' for k, v in n_t_dict.items()])
+    codes.append(f'{name} = TypedDict(\'{name}\', {{{s}}})')
+    return codes
+
+
 def main():
     epilog = f'%(prog)s({__version__}) by foyoux(https://github.com/foyoux/datclass)'
     parser = argparse.ArgumentParser(prog='datclass', description='generate datclass & support nested and extra',
@@ -185,6 +213,7 @@ def main():
     parser.add_argument('-r', '--recursive', help='recursive generate dat class', action='store_true')
     parser.add_argument('-o', '--output', help='output file - *.py')
     parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
+    parser.add_argument('-i', '--inline', help='use inline model to generate TypedDict type', action='store_true')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
 
     args = parser.parse_args()
@@ -218,7 +247,11 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    dat = gen_datclass(body, name, recursive, args.dict)
+    if args.dict and args.inline:
+        dat = gen_typed_dict(body, name, recursive)
+    else:
+        dat = gen_datclass(body, name, recursive, args.dict)
+
     dat = '\n'.join(imports.to_list() + dat + [''])
 
     if output:
