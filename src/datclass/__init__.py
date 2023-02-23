@@ -1,7 +1,19 @@
 __title__ = 'datclass'
 __author__ = 'foyoux'
 __version__ = '0.0.1'
-__all__ = ['main', 'DatClass', 'List', 'Dict', 'Union', 'get_origin', 'get_args', 'dataclass', 'field', 'is_dataclass']
+__all__ = [
+    'main',
+    'DatClass',
+    'List',
+    'Dict',
+    'Union',
+    'TypedDict',
+    'get_origin',
+    'get_args',
+    'dataclass',
+    'field',
+    'is_dataclass'
+]
 
 import argparse
 import json
@@ -11,9 +23,9 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 try:
-    from typing import get_origin, get_args
+    from typing import get_origin, get_args, TypedDict
 except ImportError:
-    from typing_extensions import get_origin, get_args
+    from typing_extensions import get_origin, get_args, TypedDict
 
 _ORIGINAL_INIT = '__dataclass_init__'
 
@@ -104,21 +116,26 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
 
 
 imports = [
-    'from datclass import dataclass, field, List, Dict, DatClass', '', '',
+    'from datclass import dataclass, field, List, Dict, TypedDict, DatClass', '', '',
 ]
 
 
-def gen_datclass(dat: Union[list, dict], name='Object', recursive=False):
+def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=False):
     """
     :param dat: list or dict data
     :param name: main dat class name
     :param recursive: recursive generate dat class
+    :param dict_: generate TypedDict class
     """
     try:
         dat = merge_list_dict(dat)
     except TypeError:
         pass
-    codes = ['@dataclass', f'class {name}(DatClass):']
+
+    if dict_:
+        codes = [f'class {name}(TypedDict):']
+    else:
+        codes = ['@dataclass', f'class {name}(DatClass):']
 
     for k, v in dat.items():
         v_t = get_v_type(v)
@@ -130,20 +147,25 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False):
                 t_s = s
             elif t_s == 'List[dict]':
                 t_s = f'List[{s}]'
-            codes = gen_datclass(v, s, recursive=True) + ['', ''] + codes
-        codes.append(f'    {k}: {t_s} = {v_d}')
+            codes = gen_datclass(v, s, recursive=True, dict_=dict_) + ['', ''] + codes
+        if dict_:
+            codes.append(f'    {k}: {t_s}')
+        else:
+            codes.append(f'    {k}: {t_s} = {v_d}')
 
     return codes
 
 
 def main():
     epilog = f'%(prog)s({__version__}) by foyoux(https://github.com/foyoux/datclass)'
-    parser = argparse.ArgumentParser(prog='datclass', description='', epilog=epilog)
+    parser = argparse.ArgumentParser(prog='datclass', description='generate datclass & support nested and extra',
+                                     epilog=epilog)
     parser.add_argument('-v', '--version', action='version', version=epilog)
 
     parser.add_argument('-n', '--name', help='main dat class name', default='Object')
     parser.add_argument('-r', '--recursive', help='recursive generate dat class', action='store_true')
     parser.add_argument('-o', '--output', help='output file - *.py')
+    parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
 
     args = parser.parse_args()
@@ -177,7 +199,7 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    dat = gen_datclass(body, name, recursive)
+    dat = gen_datclass(body, name, recursive, args.dict)
     dat = '\n'.join(imports + dat + [''])
 
     if output:
