@@ -18,7 +18,7 @@ __all__ = [
 import argparse
 import json
 import os
-from dataclasses import dataclass, is_dataclass, field
+from dataclasses import dataclass, is_dataclass, field, asdict
 from pathlib import Path
 from typing import List, Dict, Union
 
@@ -115,9 +115,20 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
     return d
 
 
-imports = [
-    'from datclass import dataclass, field, List, Dict, TypedDict, DatClass', '', '',
-]
+@dataclass
+class Imports:
+    dataclass: bool = False
+    field: bool = False
+    List: bool = False
+    Dict: bool = False
+    TypedDict: bool = False
+    DatClass: bool = False
+
+    def to_list(self):
+        return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
+
+
+imports = Imports()
 
 
 def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=False):
@@ -133,8 +144,11 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         pass
 
     if dict_:
+        imports.TypedDict = True
         codes = [f'class {name}(TypedDict):']
     else:
+        imports.dataclass = True
+        imports.DatClass = True
         codes = ['@dataclass', f'class {name}(DatClass):']
 
     for k, v in dat.items():
@@ -142,15 +156,20 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
         if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
+            imports.List = True
             s = get_nice_cls_name(k)
             if isinstance(v, dict):
                 t_s = s
             elif t_s == 'List[dict]':
                 t_s = f'List[{s}]'
             codes = gen_datclass(v, s, recursive=True, dict_=dict_) + ['', ''] + codes
+        if t_s == 'Dict':
+            imports.Dict = True
         if dict_:
             codes.append(f'    {k}: {t_s}')
         else:
+            if v_d.startswith('field'):
+                imports.field = True
             codes.append(f'    {k}: {t_s} = {v_d}')
 
     return codes
@@ -200,7 +219,7 @@ def main():
         return
 
     dat = gen_datclass(body, name, recursive, args.dict)
-    dat = '\n'.join(imports + dat + [''])
+    dat = '\n'.join(imports.to_list() + dat + [''])
 
     if output:
         f = Path(output)
