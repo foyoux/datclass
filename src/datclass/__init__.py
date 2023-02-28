@@ -12,7 +12,8 @@ __all__ = [
     'get_args',
     'dataclass',
     'field',
-    'is_dataclass'
+    'is_dataclass',
+    'set_debug',
 ]
 
 import argparse
@@ -28,12 +29,20 @@ except ImportError:
     from typing_extensions import get_origin, get_args, TypedDict
 
 _ORIGINAL_INIT = '__dataclass_init__'
+_DEBUG = False
+
+
+def set_debug(b):
+    global _DEBUG
+    _DEBUG = b
 
 
 def _datclass_init(self, *args, **kwargs):
     getattr(self, _ORIGINAL_INIT)(
         *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
     )
+    if _DEBUG:
+        return
     for attr, value in kwargs.items():
         setattr(self, attr, value)
 
