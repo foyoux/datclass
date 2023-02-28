@@ -17,8 +17,11 @@ __all__ = [
 ]
 
 import argparse
+import hashlib
 import json
+import keyword
 import os
+import string
 from dataclasses import dataclass, is_dataclass, field, asdict
 from pathlib import Path
 from typing import List, Dict, Union
@@ -37,7 +40,44 @@ def set_debug(b):
     _DEBUG = b
 
 
+_NAME_MAP = {}
+
+
+def _get_md5_identifier(name, length=8):
+    s = hashlib.md5(name.encode()).hexdigest()
+    return f'a_{s[:length]}'
+
+
+def get_ok_name(name: str):
+    if name in _NAME_MAP:
+        return _NAME_MAP[name]
+
+    if keyword.iskeyword(name):
+        s = f'{name}_'
+    elif name.isidentifier():
+        s = name
+    else:
+        ns = []
+        for c in name:
+            if c == '_' or c in string.ascii_letters or c in string.digits:
+                ns.append(c)
+        s = ''.join(ns)
+        if s:
+            if keyword.iskeyword(s):
+                s = f'{s}_'
+            elif not s.isidentifier():
+                s = _get_md5_identifier(name)
+        else:
+            s = _get_md5_identifier(name)
+    _NAME_MAP[name] = s
+    return s
+
+
 def _datclass_init(self, *args, **kwargs):
+    if kwargs:
+        td = {get_ok_name(k): v for k, v in kwargs.items()}
+        kwargs.clear()
+        kwargs.update(td)
     getattr(self, _ORIGINAL_INIT)(
         *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
     )
@@ -58,6 +98,10 @@ class DatClass:
         return obj
 
     def __post_init__(self, *args, **kwargs):
+        if kwargs:
+            td = {get_ok_name(k): v for k, v in kwargs.items()}
+            kwargs.clear()
+            kwargs.update(td)
         for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
             attr_type = FIELD.type
             origin = get_origin(attr_type)
@@ -160,7 +204,9 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         imports.DatClass = True
         codes = ['@dataclass', f'class {name}(DatClass):']
 
-    for k, v in dat.items():
+    for k_, v in dat.items():
+        k = get_ok_name(k_)
+        c = '' if k == k_ else f'  # rename from "{k_}"'
         v_t = get_v_type(v)
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
@@ -175,11 +221,11 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         if t_s == 'Dict':
             imports.Dict = True
         if dict_:
-            codes.append(f'    {k}: {t_s}')
+            codes.append(f'    {k}: {t_s}{c}')
         else:
             if v_d.startswith('field'):
                 imports.field = True
-            codes.append(f'    {k}: {t_s} = {v_d}')
+            codes.append(f'    {k}: {t_s} = {v_d}{c}')
 
     return codes
 
