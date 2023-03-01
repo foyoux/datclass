@@ -77,14 +77,10 @@ def get_ok_identifier(name: str):
 
 def _datclass_init(self, *args, **kwargs):
     if kwargs:
-        td = {get_ok_identifier(k): v for k, v in kwargs.items()}
-        kwargs.clear()
-        kwargs.update(td)
+        kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
     getattr(self, _ORIGINAL_INIT)(
-        *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
+        *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if _DEBUG or k in kwargs}
     )
-    if _DEBUG:
-        return
     for attr, value in kwargs.items():
         setattr(self, attr, value)
 
@@ -93,17 +89,12 @@ def _datclass_init(self, *args, **kwargs):
 class DatClass:
 
     def __new__(cls, *args, **kwargs):
-        obj = super().__new__(cls)
         if not hasattr(cls, _ORIGINAL_INIT):
             setattr(cls, _ORIGINAL_INIT, cls.__init__)
             setattr(cls, '__init__', _datclass_init)
-        return obj
+        return super().__new__(cls)
 
     def __post_init__(self, *args, **kwargs):
-        if kwargs:
-            td = {get_ok_identifier(k): v for k, v in kwargs.items()}
-            kwargs.clear()
-            kwargs.update(td)
         for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
             attr_type = FIELD.type
             origin = get_origin(attr_type)
