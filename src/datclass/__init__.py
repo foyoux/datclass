@@ -204,11 +204,11 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
         if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            imports.List = True
             s = get_nice_cls_name(k)
             if isinstance(v, dict):
                 t_s = s
             elif t_s == 'List[dict]':
+                imports.List = True
                 t_s = f'List[{s}]'
             codes = gen_datclass(v, s, recursive=True, dict_=dict_) + ['', ''] + codes
         if t_s == 'Dict':
@@ -241,9 +241,9 @@ def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False):
             elif t_s == 'List[dict]':
                 t_s = f'List[{s}]'
             codes = gen_typed_dict(v, s, recursive=True) + codes
-        if not imports.Dict and t_s == 'Dict':
+        if t_s == 'Dict':
             imports.Dict = True
-        if not imports.List and t_s.startswith('List'):
+        if t_s.startswith('List'):
             imports.List = True
         n_t_dict[k] = t_s
     s = ', '.join([f'\'{k}\': {v}' for k, v in n_t_dict.items()])
