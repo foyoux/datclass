@@ -31,8 +31,9 @@ try:
 except ImportError:
     from typing_extensions import get_origin, get_args, TypedDict
 
-_ORIGINAL_INIT = '__dataclass_init__'
 _DEBUG = False
+_NAME_MAP = {}
+_ORIGINAL_INIT = '__dataclass_init__'
 
 
 def set_debug(b):
@@ -40,42 +41,43 @@ def set_debug(b):
     _DEBUG = b
 
 
-_NAME_MAP = {}
-
-
 def _get_md5_identifier(name, length=8):
     s = hashlib.md5(name.encode()).hexdigest()
-    return f'a_{s[:length]}'
+    return f'a_{s[:length]}'  # attribute
 
 
-def get_ok_name(name: str):
+def get_ok_identifier(name: str):
+    # 查询缓存
     if name in _NAME_MAP:
         return _NAME_MAP[name]
 
+    # 如果是关键字，则加 '_' 后缀
     if keyword.iskeyword(name):
         s = f'{name}_'
     elif name.isidentifier():
+        # 关键字是合法标识符，所以先判断关键字，再判断标识符
         s = name
     else:
-        ns = []
-        for c in name:
-            if c == '_' or c in string.ascii_letters or c in string.digits:
-                ns.append(c)
-        s = ''.join(ns)
+        # 不是标准标识符，过滤掉除 下划线、大小写字母、数字 的其他字符
+        s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
         if s:
-            if keyword.iskeyword(s):
+            if s[0] in string.digits:
+                s = f'a_{s}'
+            elif keyword.iskeyword(s):
                 s = f'{s}_'
             elif not s.isidentifier():
                 s = _get_md5_identifier(name)
         else:
             s = _get_md5_identifier(name)
+
+    # 返回之前进行缓存
     _NAME_MAP[name] = s
     return s
 
 
 def _datclass_init(self, *args, **kwargs):
     if kwargs:
-        td = {get_ok_name(k): v for k, v in kwargs.items()}
+        td = {get_ok_identifier(k): v for k, v in kwargs.items()}
         kwargs.clear()
         kwargs.update(td)
     getattr(self, _ORIGINAL_INIT)(
@@ -99,7 +101,7 @@ class DatClass:
 
     def __post_init__(self, *args, **kwargs):
         if kwargs:
-            td = {get_ok_name(k): v for k, v in kwargs.items()}
+            td = {get_ok_identifier(k): v for k, v in kwargs.items()}
             kwargs.clear()
             kwargs.update(td)
         for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
@@ -205,8 +207,8 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         codes = ['@dataclass', f'class {name}(DatClass):']
 
     for k_, v in dat.items():
-        k = get_ok_name(k_)
-        c = '' if k == k_ else f'  # rename from "{k_}"'
+        k = get_ok_identifier(k_)
+        c = '' if k == k_ else f'  # rename from \'{k_}\''
         v_t = get_v_type(v)
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
