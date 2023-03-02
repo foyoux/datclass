@@ -149,7 +149,7 @@ def get_t_string(t):
 def get_nice_cls_name(field_name: str, level=0):
     cls_name = field_name.title().replace('_', '')
     if cls_name in _CLASS_MAP:
-        cls_name = f'{cls_name}_{level}'
+        cls_name = f'{cls_name}{level}'
     _CLASS_MAP.add(cls_name)
     return cls_name
 
