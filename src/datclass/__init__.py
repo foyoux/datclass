@@ -13,7 +13,6 @@ __all__ = [
     'dataclass',
     'field',
     'is_dataclass',
-    'set_debug',
 ]
 
 import argparse
