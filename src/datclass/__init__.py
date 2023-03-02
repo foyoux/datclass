@@ -32,6 +32,7 @@ except ImportError:
 
 _DEBUG = False
 _NAME_MAP = {}
+_CLASS_MAP = set()
 _ORIGINAL_INIT = '__dataclass_init__'
 
 
@@ -145,8 +146,12 @@ def get_t_string(t):
     return t.__name__
 
 
-def get_nice_cls_name(field_name: str):
-    return field_name.title().replace('_', '')
+def get_nice_cls_name(field_name: str, level=0):
+    cls_name = field_name.title().replace('_', '')
+    if cls_name in _CLASS_MAP:
+        cls_name = f'{cls_name}_{level}'
+    _CLASS_MAP.add(cls_name)
+    return cls_name
 
 
 def merge_list_dict(list_dict: List[dict]) -> Dict:
@@ -182,12 +187,13 @@ class Imports:
 imports = Imports()
 
 
-def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=False):
+def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=False, level=0):
     """
     :param dat: list or dict data
     :param name: main dat class name
     :param recursive: recursive generate datclass
     :param dict_: generate TypedDict class
+    :param level: 层级，用以解决 类名 冲突问题
     """
     try:
         dat = merge_list_dict(dat)
@@ -209,13 +215,13 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
         v_d = get_t_default(v_t)
         t_s = get_t_string(v_t)
         if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            s = get_nice_cls_name(k)
+            s = get_nice_cls_name(k, level)
             if isinstance(v, dict):
                 t_s = s
             elif t_s == 'List[dict]':
                 imports.List = True
                 t_s = f'List[{s}]'
-            codes = gen_datclass(v, s, recursive=True, dict_=dict_) + ['', ''] + codes
+            codes = gen_datclass(v, s, recursive=True, dict_=dict_, level=level + 1) + ['', ''] + codes
         if t_s == 'Dict':
             imports.Dict = True
         if dict_:
@@ -228,7 +234,7 @@ def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=F
     return codes
 
 
-def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False):
+def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False, level=0):
     try:
         dat = merge_list_dict(dat)
     except TypeError:
@@ -240,12 +246,12 @@ def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False):
         v_t = get_v_type(v)
         t_s = get_t_string(v_t)
         if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            s = get_nice_cls_name(k)
+            s = get_nice_cls_name(k, level)
             if isinstance(v, dict):
                 t_s = s
             elif t_s == 'List[dict]':
                 t_s = f'List[{s}]'
-            codes = gen_typed_dict(v, s, recursive=True) + codes
+            codes = gen_typed_dict(v, s, recursive=True, level=level + 1) + codes
         if t_s == 'Dict':
             imports.Dict = True
         if t_s.startswith('List'):

@@ -2,6 +2,7 @@ import datclass
 
 
 def test_generate_cls(data):
+    datclass._CLASS_MAP.clear()
     codes = datclass.gen_datclass(data, recursive=True)
     dat = '\n'.join(datclass.imports.to_list() + codes + [
         'obj = Object(**data)',
