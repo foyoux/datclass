@@ -147,3 +147,174 @@ def test_merge_list_dict2():
         "datacenter": "HKG",
         "ip_version": 4,
     }
+
+
+def test_merge_nested_dict():
+    # noinspection DuplicatedCode
+    data = [
+        {
+            "_initiator": {
+                "type": "other"
+            },
+            "_priority": "VeryHigh",
+            "_resourceType": "document",
+            "cache": {},
+            "connection": "460",
+            "pageref": "page_1",
+        },
+        {
+            "_initiator": {
+                "type": "parser",
+                "url": "https://github.com/foyoux/phar",
+                "lineNumber": 23
+            },
+            "_priority": "VeryHigh",
+            "_resourceType": "stylesheet",
+            "cache": {},
+            "connection": "512",
+            "pageref": "page_1",
+        },
+        {
+            "_initiator": {
+                "type": "parser",
+                "url": "https://github.com/foyoux/phar",
+                "lineNumber": 33
+            },
+            "_priority": "Low",
+            "_resourceType": "script",
+            "cache": {},
+            "connection": "512",
+            "pageref": "page_1",
+        }, {
+            "_initiator": {
+                "type": "script",
+                "stack": {
+                    "callFrames": [
+                        {
+                            "functionName": "_.l",
+                            "scriptId": "84",
+                            "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                            "lineNumber": 0,
+                            "columnNumber": 20357
+                        },
+                        {
+                            "functionName": "_.f.j",
+                            "scriptId": "84",
+                            "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                            "lineNumber": 0,
+                            "columnNumber": 21590
+                        },
+                        {
+                            "functionName": "",
+                            "scriptId": "84",
+                            "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                            "lineNumber": 0,
+                            "columnNumber": 1207
+                        },
+                        {
+                            "functionName": "_.e",
+                            "scriptId": "84",
+                            "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                            "lineNumber": 0,
+                            "columnNumber": 1186
+                        },
+                        {
+                            "functionName": "",
+                            "scriptId": "97",
+                            "url": "https://github.githubassets.com/assets/element-registry-d46d179ca77b.js",
+                            "lineNumber": 0,
+                            "columnNumber": 5341
+                        }
+                    ],
+                    "parent": {
+                        "description": "Promise.then",
+                        "callFrames": [
+                            {
+                                "functionName": "",
+                                "scriptId": "92",
+                                "url": "https://github.githubassets.com/assets/vendors-node_modules_github_auto-complete-element_dist_index_js-node_modules_github_catalyst_-6afc16-e779583c369f.js",
+                                "lineNumber": 0,
+                                "columnNumber": 13151
+                            }
+                        ],
+                        "parent": {
+                            "description": "requestAnimationFrame",
+                            "callFrames": [
+                                {
+                                    "functionName": "q",
+                                    "scriptId": "92",
+                                    "url": "https://github.githubassets.com/assets/vendors-node_modules_github_auto-complete-element_dist_index_js-node_modules_github_catalyst_-6afc16-e779583c369f.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 12932
+                                },
+                                {
+                                    "functionName": "F",
+                                    "scriptId": "92",
+                                    "url": "https://github.githubassets.com/assets/vendors-node_modules_github_auto-complete-element_dist_index_js-node_modules_github_catalyst_-6afc16-e779583c369f.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 13247
+                                },
+                                {
+                                    "functionName": "77062",
+                                    "scriptId": "97",
+                                    "url": "https://github.githubassets.com/assets/element-registry-d46d179ca77b.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 27080
+                                },
+                                {
+                                    "functionName": "_",
+                                    "scriptId": "84",
+                                    "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 140
+                                },
+                                {
+                                    "functionName": "",
+                                    "scriptId": "97",
+                                    "url": "https://github.githubassets.com/assets/element-registry-d46d179ca77b.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 33326
+                                },
+                                {
+                                    "functionName": "s",
+                                    "scriptId": "84",
+                                    "url": "https://github.githubassets.com/assets/wp-runtime-b0208882aebc.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 21748
+                                },
+                                {
+                                    "functionName": "",
+                                    "scriptId": "97",
+                                    "url": "https://github.githubassets.com/assets/element-registry-d46d179ca77b.js",
+                                    "lineNumber": 0,
+                                    "columnNumber": 67
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "_priority": "Low",
+            "_resourceType": "script",
+            "cache": {},
+            "connection": "512",
+            "pageref": "page_1",
+        },
+        {
+            "_initiator": {
+                "type": "other"
+            },
+            "_priority": "High",
+            "_resourceType": "other",
+            "cache": {},
+            "connection": "793",
+            "pageref": "page_1",
+        }
+    ]
+    d = merge_list_dict(data)
+    assert '_initiator' in d
+    assert '_priority' in d
+    assert '_resourceType' in d
+    assert 'cache' in d
+    assert 'connection' in d
+    assert 'pageref' in d
