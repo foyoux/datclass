@@ -78,9 +78,12 @@ def get_ok_identifier(name: str):
 def _datclass_init(self, *args, **kwargs):
     if kwargs:
         kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
-    getattr(self, _ORIGINAL_INIT)(
-        *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if _DEBUG or k in kwargs}
-    )
+    if _DEBUG:
+        getattr(self, _ORIGINAL_INIT)(*args, **kwargs)
+    else:
+        getattr(self, _ORIGINAL_INIT)(
+            *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
+        )
     for attr, value in kwargs.items():
         setattr(self, attr, value)
 
