@@ -172,6 +172,8 @@ class GenerateDatClass:
             cls_name = f'{cls_name}{level}'
         if cls_name == field_name:
             cls_name = f'{cls_name}_'
+        if keyword.iskeyword(cls_name):
+            cls_name = f'{cls_name}_'
         self.class_map.add(cls_name)
         return cls_name
 
@@ -250,7 +252,7 @@ class GenerateDatClass:
             v_t = self.get_v_type(v)
             t_s = self.get_t_string(v_t)
             if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-                s = self.get_nice_cls_name(k, level)
+                s = self.get_nice_cls_name(get_ok_identifier(k), level)
                 if isinstance(v, dict):
                     t_s = s
                 elif t_s == 'List[dict]':
