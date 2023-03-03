@@ -67,6 +67,10 @@ def get_ok_identifier(name: str):
         else:
             s = _get_md5_identifier(name)
 
+    # 将首字母转为小写
+    if s[0] in string.ascii_uppercase:
+        s = s[0].lower() + s[1:]
+
     # 返回之前进行缓存
     _NAME_MAP[name] = s
     return s
@@ -166,6 +170,8 @@ class GenerateDatClass:
         cls_name = field_name.title().replace('_', '')
         if cls_name in self.class_map:
             cls_name = f'{cls_name}{level}'
+        if cls_name == field_name:
+            cls_name = f'{cls_name}_'
         self.class_map.add(cls_name)
         return cls_name
 
