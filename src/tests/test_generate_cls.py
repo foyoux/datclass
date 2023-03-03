@@ -1,10 +1,10 @@
-import datclass
+from datclass import GenerateDatClass
 
 
 def test_generate_cls(data):
-    datclass._CLASS_MAP.clear()
-    codes = datclass.gen_datclass(data, recursive=True)
-    dat = '\n'.join(datclass.imports.to_list() + codes + [
+    g = GenerateDatClass()
+    codes = g.gen_datclass(data, recursive=True)
+    dat = '\n'.join(g.imports.to_list() + codes + [
         'obj = Object(**data)',
         'assert obj.update_id == 1',
         'assert isinstance(obj.message, Message)',

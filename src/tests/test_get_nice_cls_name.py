@@ -1,5 +1,5 @@
 import datclass
-from datclass import get_nice_cls_name
+from datclass import GenerateDatClass
 
 dat = """
 {
@@ -60,5 +60,5 @@ dat = """
 
 
 def test_underline():
-    datclass._CLASS_MAP.clear()
-    assert get_nice_cls_name('forward_from') == 'ForwardFrom'
+    g = GenerateDatClass()
+    assert g.get_nice_cls_name('forward_from') == 'ForwardFrom'

@@ -1,5 +1,5 @@
 # noinspection PyProtectedMember
-from datclass import merge_list_dict
+from datclass import GenerateDatClass
 
 
 def test_merge_list_dict():
@@ -8,7 +8,7 @@ def test_merge_list_dict():
             "url": "https://www.youtube.com/s/gaming/emoji/0f0cae22/emoji_u1f600.svg"
         }
     ]
-    assert merge_list_dict(ld) == {
+    assert GenerateDatClass.merge_list_dict(ld) == {
         "url": "https://www.youtube.com/s/gaming/emoji/0f0cae22/emoji_u1f600.svg"
     }
     tasks = [
@@ -94,7 +94,7 @@ def test_merge_list_dict():
             "classification": {}
         }
     ]
-    assert merge_list_dict(tasks) == {
+    assert GenerateDatClass.merge_list_dict(tasks) == {
         "id": "ACC",
         "req_header": "",
         "resource": "https://acc-v4.pops.fastly-insights.com/o.svg?u=<%TEST_ID%>",
@@ -114,7 +114,7 @@ def test_merge_list_dict():
         'name': 'foyou',
     }
     tasks.insert(0, t)
-    dd = merge_list_dict(tasks)
+    dd = GenerateDatClass.merge_list_dict(tasks)
     assert dd['name'] == 'foyou'
     assert dd['classification'] == t['classification']
 
@@ -136,7 +136,7 @@ def test_merge_list_dict2():
             "ip_version": 4,
         }
     ]
-    assert merge_list_dict(ld) == {
+    assert GenerateDatClass.merge_list_dict(ld) == {
         "country_code": "HK",
         "asn": 206264,
         "connection_type": "wifi",
@@ -311,7 +311,7 @@ def test_merge_nested_dict():
             "pageref": "page_1",
         }
     ]
-    d = merge_list_dict(data)
+    d = GenerateDatClass.merge_list_dict(data)
     assert '_initiator' in d
     assert '_priority' in d
     assert '_resourceType' in d

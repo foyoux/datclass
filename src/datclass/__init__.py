@@ -8,8 +8,6 @@ __all__ = [
     'Dict',
     'Union',
     'TypedDict',
-    'get_origin',
-    'get_args',
     'dataclass',
     'field',
     'is_dataclass',
@@ -32,7 +30,6 @@ except ImportError:
 
 _DEBUG = False
 _NAME_MAP = {}
-_CLASS_MAP = set()
 _ORIGINAL_INIT = '__dataclass_init__'
 
 
@@ -109,68 +106,6 @@ class DatClass:
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
 
 
-def get_v_type(v, none_type=str):
-    if v is None:
-        return none_type
-    if isinstance(v, dict):
-        return Dict
-    if isinstance(v, list):
-        t_set = set()
-        for i in v:
-            if isinstance(i, dict):
-                t_set.add(dict)
-            elif isinstance(i, list):
-                t_set.add(list)
-            else:
-                t_set.add(type(i))
-        if len(t_set) == 1:
-            return List[t_set.pop()]
-        else:
-            return List
-    return type(v)
-
-
-def get_t_default(t):
-    o_t = get_origin(t)
-    if o_t is list:
-        return 'field(default_factory=list)'
-    return 'None'
-
-
-def get_t_string(t):
-    if t is Dict:
-        return 'Dict'
-    if get_origin(t) is list:
-        st = get_args(t)
-        return f'List[{get_t_string(st[0])}]' if st else 'List'
-    return t.__name__
-
-
-def get_nice_cls_name(field_name: str, level=0):
-    cls_name = field_name.title().replace('_', '')
-    if cls_name in _CLASS_MAP:
-        cls_name = f'{cls_name}{level}'
-    _CLASS_MAP.add(cls_name)
-    return cls_name
-
-
-def merge_list_dict(list_dict: List[dict]) -> Dict:
-    if not isinstance(list_dict, list):
-        raise TypeError(f'({list_dict}) is not list_dict')
-    d = {}
-    for i in list_dict:
-        if not isinstance(i, dict):
-            raise TypeError(f'element({i}) of list_dict is not dict')
-        for k, v in i.items():
-            if k not in d:
-                d[k] = v
-            elif d[k] and isinstance(v, dict):
-                d[k] = merge_list_dict([d[k], v])
-            elif not d[k] and v:
-                d[k] = v
-    return d
-
-
 @dataclass
 class Imports:
     dataclass: bool = False
@@ -184,82 +119,145 @@ class Imports:
         return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
 
 
-imports = Imports()
+class GenerateDatClass:
 
+    def __init__(self):
+        self.class_map = set()
+        self.imports = Imports()
 
-def gen_datclass(dat: Union[list, dict], name='Object', recursive=False, dict_=False, level=0):
-    """
-    :param dat: list or dict data
-    :param name: main dat class name
-    :param recursive: recursive generate datclass
-    :param dict_: generate TypedDict class
-    :param level: 层级，用以解决 类名 冲突问题
-    """
-    try:
-        dat = merge_list_dict(dat)
-    except TypeError:
-        pass
+    @staticmethod
+    def get_v_type(v, none_type=str):
+        if v is None:
+            return none_type
+        if isinstance(v, dict):
+            return Dict
+        if isinstance(v, list):
+            t_set = set()
+            for i in v:
+                if isinstance(i, dict):
+                    t_set.add(dict)
+                elif isinstance(i, list):
+                    t_set.add(list)
+                else:
+                    t_set.add(type(i))
+            if len(t_set) == 1:
+                return List[t_set.pop()]
+            else:
+                return List
+        return type(v)
 
-    if dict_:
-        imports.TypedDict = True
-        codes = [f'class {name}(TypedDict):']
-    else:
-        imports.dataclass = True
-        imports.DatClass = True
-        codes = ['@dataclass', f'class {name}(DatClass):']
+    @staticmethod
+    def get_t_default(t):
+        o_t = get_origin(t)
+        if o_t is list:
+            return 'field(default_factory=list)'
+        return 'None'
 
-    for k_, v in dat.items():
-        k = get_ok_identifier(k_)
-        c = '' if k == k_ else f'  # rename from \'{k_}\''
-        v_t = get_v_type(v)
-        v_d = get_t_default(v_t)
-        t_s = get_t_string(v_t)
-        if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            s = get_nice_cls_name(k, level)
-            if isinstance(v, dict):
-                t_s = s
-            elif t_s == 'List[dict]':
-                imports.List = True
-                t_s = f'List[{s}]'
-            codes = gen_datclass(v, s, recursive=True, dict_=dict_, level=level + 1) + ['', ''] + codes
-        if t_s == 'Dict':
-            imports.Dict = True
+    @staticmethod
+    def get_t_string(t):
+        if t is Dict:
+            return 'Dict'
+        if get_origin(t) is list:
+            st = get_args(t)
+            return f'List[{GenerateDatClass.get_t_string(st[0])}]' if st else 'List'
+        return t.__name__
+
+    def get_nice_cls_name(self, field_name: str, level=0):
+        cls_name = field_name.title().replace('_', '')
+        if cls_name in self.class_map:
+            cls_name = f'{cls_name}{level}'
+        self.class_map.add(cls_name)
+        return cls_name
+
+    @staticmethod
+    def merge_list_dict(list_dict: List[dict]) -> Dict:
+        if not isinstance(list_dict, list):
+            raise TypeError(f'({list_dict}) is not list_dict')
+        d = {}
+        for i in list_dict:
+            if not isinstance(i, dict):
+                raise TypeError(f'element({i}) of list_dict is not dict')
+            for k, v in i.items():
+                if k not in d:
+                    d[k] = v
+                elif d[k] and isinstance(v, dict):
+                    d[k] = GenerateDatClass.merge_list_dict([d[k], v])
+                elif not d[k] and v:
+                    d[k] = v
+        return d
+
+    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=False, dict_=False, level=0):
+        """
+        :param dat: list or dict data
+        :param name: main dat class name
+        :param recursive: recursive generate datclass
+        :param dict_: generate TypedDict class
+        :param level: 层级，用以解决 类名 冲突问题
+        """
+        try:
+            dat = self.merge_list_dict(dat)
+        except TypeError:
+            pass
+
         if dict_:
-            codes.append(f'    {k}: {t_s}{c}')
+            self.imports.TypedDict = True
+            codes = [f'class {name}(TypedDict):']
         else:
-            if v_d.startswith('field'):
-                imports.field = True
-            codes.append(f'    {k}: {t_s} = {v_d}{c}')
+            self.imports.dataclass = True
+            self.imports.DatClass = True
+            codes = ['@dataclass', f'class {name}(DatClass):']
 
-    return codes
+        for k_, v in dat.items():
+            k = get_ok_identifier(k_)
+            c = '' if k == k_ else f'  # rename from \'{k_}\''
+            v_t = self.get_v_type(v)
+            v_d = self.get_t_default(v_t)
+            t_s = self.get_t_string(v_t)
+            if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
+                s = self.get_nice_cls_name(k, level)
+                if isinstance(v, dict):
+                    t_s = s
+                elif t_s == 'List[dict]':
+                    self.imports.List = True
+                    t_s = f'List[{s}]'
+                codes = self.gen_datclass(v, s, recursive=True, dict_=dict_, level=level + 1) + ['', ''] + codes
+            if t_s == 'Dict':
+                self.imports.Dict = True
+            if dict_:
+                codes.append(f'    {k}: {t_s}{c}')
+            else:
+                if v_d.startswith('field'):
+                    self.imports.field = True
+                codes.append(f'    {k}: {t_s} = {v_d}{c}')
 
+        return codes
 
-def gen_typed_dict(dat: Union[list, dict], name='Object', recursive=False, level=0):
-    try:
-        dat = merge_list_dict(dat)
-    except TypeError:
-        pass
-    imports.TypedDict = True
-    codes = []
-    n_t_dict = {}
-    for k, v in dat.items():
-        v_t = get_v_type(v)
-        t_s = get_t_string(v_t)
-        if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-            s = get_nice_cls_name(k, level)
-            if isinstance(v, dict):
-                t_s = s
-            elif t_s == 'List[dict]':
-                t_s = f'List[{s}]'
-            codes = gen_typed_dict(v, s, recursive=True, level=level + 1) + codes
-        if t_s == 'Dict':
-            imports.Dict = True
-        if t_s.startswith('List'):
-            imports.List = True
-        n_t_dict[k] = t_s
-    s = ', '.join([f'\'{k}\': {v}' for k, v in n_t_dict.items()])
-    codes.append(f'{name} = TypedDict(\'{name}\', {{{s}}})')
-    return codes
+    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
+        try:
+            dat = self.merge_list_dict(dat)
+        except TypeError:
+            pass
+        self.imports.TypedDict = True
+        codes = []
+        n_t_dict = {}
+        for k, v in dat.items():
+            v_t = self.get_v_type(v)
+            t_s = self.get_t_string(v_t)
+            if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
+                s = self.get_nice_cls_name(k, level)
+                if isinstance(v, dict):
+                    t_s = s
+                elif t_s == 'List[dict]':
+                    t_s = f'List[{s}]'
+                codes = self.gen_typed_dict(v, s, recursive=True, level=level + 1) + codes
+            if t_s == 'Dict':
+                self.imports.Dict = True
+            if t_s.startswith('List'):
+                self.imports.List = True
+            n_t_dict[k] = t_s
+        s = ', '.join([f'\'{k}\': {v}' for k, v in n_t_dict.items()])
+        codes.append(f'{name} = TypedDict(\'{name}\', {{{s}}})')
+        return codes
 
 
 def main():
@@ -306,12 +304,14 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    if args.dict and args.inline:
-        dat = gen_typed_dict(body, name, recursive)
-    else:
-        dat = gen_datclass(body, name, recursive, args.dict)
+    g = GenerateDatClass()
 
-    dat = '\n'.join(imports.to_list() + dat + [''])
+    if args.dict and args.inline:
+        dat = g.gen_typed_dict(body, name, recursive)
+    else:
+        dat = g.gen_datclass(body, name, recursive, args.dict)
+
+    dat = '\n'.join(g.imports.to_list() + dat + [''])
 
     if output:
         f = Path(output)
