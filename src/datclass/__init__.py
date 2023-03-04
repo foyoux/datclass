@@ -163,7 +163,7 @@ class GenerateDatClass:
             return 'Dict'
         if get_origin(t) is list:
             st = get_args(t)
-            return f'List[{GenerateDatClass.get_t_string(st[0])}]' if st else 'List'
+            return f'List[{GenerateDatClass.get_t_string(st[0])}]' if st and not isinstance(None, st) else 'List'
         return t.__name__
 
     def get_nice_cls_name(self, field_name: str, level=0):
