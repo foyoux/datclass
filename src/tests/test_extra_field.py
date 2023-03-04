@@ -1,8 +1,8 @@
-from datclass import GenerateDatClass
+from datclass import DatclassGenerator
 
 
 def test_extra_field(data):
-    g = GenerateDatClass()
+    g = DatclassGenerator()
     codes = g.gen_datclass(data, recursive=True)
     dat = '\n'.join(g.imports.to_list() + codes + [
         'from datclass import set_debug',

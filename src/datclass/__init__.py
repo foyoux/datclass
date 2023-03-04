@@ -11,17 +11,19 @@ __all__ = [
     'dataclass',
     'field',
     'is_dataclass',
+    'set_debug', 'set_extra',
+    'DatclassGenerator',
 ]
 
 import argparse
-import hashlib
 import json
-import keyword
 import os
-import string
-from dataclasses import dataclass, is_dataclass, field, asdict
+from dataclasses import dataclass, is_dataclass, field
 from pathlib import Path
 from typing import List, Dict, Union
+
+from datclass.gens import DatclassGenerator
+from datclass.utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args, TypedDict
@@ -29,7 +31,7 @@ except ImportError:
     from typing_extensions import get_origin, get_args, TypedDict
 
 _DEBUG = False
-_NAME_MAP = {}
+_EXTRA = True
 _ORIGINAL_INIT = '__dataclass_init__'
 
 
@@ -38,42 +40,9 @@ def set_debug(b):
     _DEBUG = b
 
 
-def _get_md5_identifier(name, length=8):
-    s = hashlib.md5(name.encode()).hexdigest()
-    return f'a_{s[:length]}'  # attribute
-
-
-def get_ok_identifier(name: str):
-    # 查询缓存
-    if name in _NAME_MAP:
-        return _NAME_MAP[name]
-
-    # 如果是关键字，则加 '_' 后缀
-    if keyword.iskeyword(name):
-        s = f'{name}_'
-    elif name.isidentifier():
-        # 关键字是合法标识符，所以先判断关键字，再判断标识符
-        s = name
-    else:
-        # 不是标准标识符，过滤掉除 下划线、大小写字母、数字 的其他字符
-        s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
-        if s:
-            if s[0] in string.digits:
-                s = f'a_{s}'
-            elif keyword.iskeyword(s):
-                s = f'{s}_'
-            elif not s.isidentifier():
-                s = _get_md5_identifier(name)
-        else:
-            s = _get_md5_identifier(name)
-
-    # 将首字母转为小写
-    if s[0] in string.ascii_uppercase:
-        s = s[0].lower() + s[1:]
-
-    # 返回之前进行缓存
-    _NAME_MAP[name] = s
-    return s
+def set_extra(b):
+    global _EXTRA
+    _EXTRA = b
 
 
 def _datclass_init(self, *args, **kwargs):
@@ -86,8 +55,9 @@ def _datclass_init(self, *args, **kwargs):
         getattr(self, _ORIGINAL_INIT)(
             *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
         )
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
+        if _EXTRA:
+            for attr, value in kwargs.items():
+                setattr(self, attr, value)
 
 
 @dataclass
@@ -108,164 +78,6 @@ class DatClass:
                 continue
             for item_type in get_args(attr_type):
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
-
-
-@dataclass
-class Imports:
-    dataclass: bool = False
-    field: bool = False
-    List: bool = False
-    Dict: bool = False
-    TypedDict: bool = False
-    DatClass: bool = False
-
-    def to_list(self):
-        return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
-
-
-class GenerateDatClass:
-
-    def __init__(self):
-        self.class_map = set()
-        self.imports = Imports()
-
-    @staticmethod
-    def get_v_type(v, none_type=str):
-        if v is None:
-            return none_type
-        if isinstance(v, dict):
-            return Dict
-        if isinstance(v, list):
-            t_set = set()
-            for i in v:
-                if isinstance(i, dict):
-                    t_set.add(dict)
-                elif isinstance(i, list):
-                    t_set.add(list)
-                else:
-                    t_set.add(type(i))
-            if len(t_set) == 1:
-                return List[t_set.pop()]
-            else:
-                return List
-        return type(v)
-
-    @staticmethod
-    def get_t_default(t):
-        o_t = get_origin(t)
-        if o_t is list:
-            return 'field(default_factory=list)'
-        return 'None'
-
-    @staticmethod
-    def get_t_string(t):
-        if t is Dict:
-            return 'Dict'
-        if get_origin(t) is list:
-            st = get_args(t)
-            return f'List[{GenerateDatClass.get_t_string(st[0])}]' if st and not isinstance(None, st) else 'List'
-        return t.__name__
-
-    def get_nice_cls_name(self, field_name: str, level=0):
-        cls_name = field_name.title().replace('_', '')
-        if cls_name in self.class_map:
-            cls_name = f'{cls_name}{level}'
-        if cls_name == field_name:
-            cls_name = f'{cls_name}_'
-        if keyword.iskeyword(cls_name):
-            cls_name = f'{cls_name}_'
-        self.class_map.add(cls_name)
-        return cls_name
-
-    @staticmethod
-    def merge_list_dict(list_dict: List[dict]) -> Dict:
-        if not isinstance(list_dict, list):
-            raise TypeError(f'({list_dict}) is not list_dict')
-        d = {}
-        for i in list_dict:
-            if not isinstance(i, dict):
-                raise TypeError(f'element({i}) of list_dict is not dict')
-            for k, v in i.items():
-                if k not in d:
-                    d[k] = v
-                elif d[k] and isinstance(v, dict):
-                    d[k] = GenerateDatClass.merge_list_dict([d[k], v])
-                elif not d[k] and v:
-                    d[k] = v
-        return d
-
-    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=False, dict_=False, level=0):
-        """
-        :param dat: list or dict data
-        :param name: main dat class name
-        :param recursive: recursive generate datclass
-        :param dict_: generate TypedDict class
-        :param level: 层级，用以解决 类名 冲突问题
-        """
-        try:
-            dat = self.merge_list_dict(dat)
-        except TypeError:
-            pass
-
-        if dict_:
-            self.imports.TypedDict = True
-            codes = [f'class {name}(TypedDict):']
-        else:
-            self.imports.dataclass = True
-            self.imports.DatClass = True
-            codes = ['@dataclass', f'class {name}(DatClass):']
-
-        for k_, v in dat.items():
-            k = get_ok_identifier(k_)
-            c = '' if k == k_ else f'  # rename from \'{k_}\''
-            v_t = self.get_v_type(v)
-            v_d = self.get_t_default(v_t)
-            t_s = self.get_t_string(v_t)
-            if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-                s = self.get_nice_cls_name(k, level)
-                if isinstance(v, dict):
-                    t_s = s
-                elif t_s == 'List[dict]':
-                    self.imports.List = True
-                    t_s = f'List[{s}]'
-                codes = self.gen_datclass(v, s, recursive=True, dict_=dict_, level=level + 1) + ['', ''] + codes
-            if t_s == 'Dict':
-                self.imports.Dict = True
-            if dict_:
-                codes.append(f'    {k}: {t_s}{c}')
-            else:
-                if v_d.startswith('field'):
-                    self.imports.field = True
-                codes.append(f'    {k}: {t_s} = {v_d}{c}')
-
-        return codes
-
-    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
-        try:
-            dat = self.merge_list_dict(dat)
-        except TypeError:
-            pass
-        self.imports.TypedDict = True
-        codes = []
-        n_t_dict = {}
-        for k, v in dat.items():
-            v_t = self.get_v_type(v)
-            t_s = self.get_t_string(v_t)
-            if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-                s = self.get_nice_cls_name(get_ok_identifier(k), level)
-                if isinstance(v, dict):
-                    t_s = s
-                elif t_s == 'List[dict]':
-                    t_s = f'List[{s}]'
-                codes = self.gen_typed_dict(v, s, recursive=True, level=level + 1) + codes
-            if t_s == 'Dict':
-                self.imports.Dict = True
-            if t_s.startswith('List'):
-                self.imports.List = True
-            n_t_dict[k] = t_s
-        s = ', '.join([f'\'{k}\': {v}' for k, v in n_t_dict.items()])
-        codes.append(f'{name} = TypedDict(\'{name}\', {{{s}}})')
-        return codes
 
 
 def main():
@@ -312,7 +124,7 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    g = GenerateDatClass()
+    g = DatclassGenerator()
 
     if args.dict and args.inline:
         dat = g.gen_typed_dict(body, name, recursive)
