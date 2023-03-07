@@ -1,8 +1,8 @@
-from datclass import DatclassGenerator
+from datclass import DatGen
 
 
 def test_list_none():
-    g = DatclassGenerator()
+    g = DatGen()
     dat = g.gen_datclass({
         'NONE': [None]
     }, recursive=True)

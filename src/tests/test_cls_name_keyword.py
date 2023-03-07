@@ -1,8 +1,8 @@
-from datclass import DatclassGenerator
+from datclass import DatGen
 
 
 def test_cls_name_keyword():
-    g = DatclassGenerator()
+    g = DatGen()
     dat = g.gen_datclass({
         'NONE': {
             'name': 'foyoux'

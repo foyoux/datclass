@@ -12,7 +12,7 @@ __all__ = [
     'field',
     'is_dataclass',
     'set_debug', 'set_extra',
-    'DatclassGenerator',
+    'DatGen',
 ]
 
 import argparse
@@ -22,7 +22,7 @@ from dataclasses import dataclass, is_dataclass, field
 from pathlib import Path
 from typing import List, Dict, Union
 
-from datclass.gens import DatclassGenerator
+from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
 
 try:
@@ -124,7 +124,7 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    g = DatclassGenerator()
+    g = DatGen()
 
     if args.dict and args.inline:
         dat = g.gen_typed_dict(body, name, recursive)

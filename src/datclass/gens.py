@@ -18,7 +18,7 @@ class Imports:
         return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
 
 
-class DatclassGenerator:
+class DatGen:
 
     def __init__(self):
         self.class_map = set()

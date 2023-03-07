@@ -1,8 +1,8 @@
-from datclass import DatclassGenerator
+from datclass import DatGen
 
 
 def test_field_cls_same_name():
-    g = DatclassGenerator()
+    g = DatGen()
     dat = g.gen_datclass({
         'Lang': {
             'name': 'foyoux'

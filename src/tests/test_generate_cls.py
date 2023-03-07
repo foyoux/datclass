@@ -1,8 +1,8 @@
-from datclass import DatclassGenerator
+from datclass import DatGen
 
 
 def test_generate_cls(data):
-    g = DatclassGenerator()
+    g = DatGen()
     codes = g.gen_datclass(data, recursive=True)
     dat = '\n'.join(g.imports.to_list() + codes + [
         'obj = Object(**data)',
