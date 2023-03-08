@@ -126,10 +126,13 @@ def main():
 
     datgen = DatGen()
 
-    if args.dict and args.inline:
-        codes = datgen.gen_typed_dict(body, name, recursive)
+    if args.dict:
+        if args.inline:
+            codes = datgen.gen_typed_dict_inline(body, name, recursive)
+        else:
+            codes = datgen.gen_typed_dict_class(body, name, recursive)
     else:
-        codes = datgen.gen_datclass(body, name, recursive, args.dict)
+        codes = datgen.gen_datclass(body, name, recursive).codes
 
     dat = '\n'.join(datgen.imports.codes + codes + [''])
 

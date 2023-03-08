@@ -7,5 +7,5 @@ def test_cls_name_keyword():
         'NONE': {
             'name': 'foyoux'
         }
-    }, recursive=True)
+    }, recursive=True).codes
     assert dat[7] == "    nONE: None_ = None  # rename from 'NONE'"

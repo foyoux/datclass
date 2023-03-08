@@ -7,5 +7,5 @@ def test_field_cls_same_name():
         'Lang': {
             'name': 'foyoux'
         }
-    }, recursive=True)
+    }, recursive=True).codes
     assert dat[7] == "    lang: Lang = None  # rename from 'Lang'"
