@@ -128,9 +128,9 @@ def main():
 
     if args.dict:
         if args.inline:
-            codes = datgen.gen_typed_dict_inline(body, name, recursive)
+            codes = datgen.gen_typed_dict_inline(body, name, recursive).codes
         else:
-            codes = datgen.gen_typed_dict_class(body, name, recursive)
+            codes = datgen.gen_typed_dict_class(body, name, recursive).codes
     else:
         codes = datgen.gen_datclass(body, name, recursive).codes
 

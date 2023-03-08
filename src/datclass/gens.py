@@ -59,6 +59,44 @@ class Class:
         return codes
 
 
+@dataclass
+class DictAttr:
+    name: str
+    value: object
+    # 值类型
+    value_type: type = None
+    # 缓存
+    ok_name: str = None
+    comment: str = None
+    type_string: str = None
+
+    def __post_init__(self):
+        self.ok_name = get_ok_identifier(self.name)
+        self.comment = '' if self.name == self.ok_name else f'  # rename from \'{self.name}\''
+        self.value_type = get_value_type(self.value)
+        self.type_string = get_type_string(self.value_type)
+
+    @property
+    def code(self):
+        return f'    {self.ok_name}: {self.type_string}{self.comment}'
+
+
+@dataclass
+class DictClass:
+    name: str = None
+    attr_list: List[DictAttr] = field(default_factory=list)
+    classes: List["DictClass"] = field(default_factory=list)
+
+    @property
+    def codes(self, ):
+        codes = [f'class {self.name}(TypedDict):']
+        for attr in self.attr_list:
+            codes.append(attr.code)
+        for cls in self.classes:
+            codes = cls.codes + ['', ''] + codes
+        return codes
+
+
 class DatGen:
 
     def __init__(self):
@@ -98,7 +136,7 @@ class DatGen:
         self.imports.dataclass = True
         self.imports.DatClass = True
         # 存储类信息
-        cls = Class(name=name)
+        obj = Class(name=name)
         for k, value in dat.items():
             # 存储属性信息
             attr = Attr(k, value)
@@ -111,15 +149,15 @@ class DatGen:
                     self.imports.List = True
                     attr.type_string = f'List[{nice_cls_name}]'
                 # 递归处理
-                cls.classes.append(self.gen_datclass(value, nice_cls_name, recursive=True, level=level + 1))
+                obj.classes.append(self.gen_datclass(value, nice_cls_name, recursive=True, level=level + 1))
             # 如果类型是 Dict，则导入 Dict
             if attr.type_string == 'Dict':
                 self.imports.Dict = True
             # 如果默认值有 field，则导入 field
             if attr.default_string.startswith('field'):
                 self.imports.field = True
-            cls.attr_list.append(attr)
-        return cls
+            obj.attr_list.append(attr)
+        return obj
 
     def gen_typed_dict_class(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
         """生成"""
@@ -128,26 +166,23 @@ class DatGen:
         except TypeError:
             pass
         self.imports.TypedDict = True
-        codes = [f'class {name}(TypedDict):']
+        obj = DictClass(name=name)
         for k, value in dat.items():
-            identifier = get_ok_identifier(k)
-            comment = '' if identifier == k else f'  # rename from \'{k}\''
-            value_type = get_value_type(value)
-            type_string = get_type_string(value_type)
-            if recursive and value and (isinstance(value, dict) or type_string == 'List[dict]'):
-                nice_cls_name = self.get_nice_cls_name(identifier, level)
+            attr = DictAttr(k, value)
+            if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
+                nice_cls_name = self.get_nice_cls_name(attr.ok_name, level)
                 if isinstance(value, dict):
-                    type_string = nice_cls_name
-                elif type_string == 'List[dict]':
+                    attr.type_string = nice_cls_name
+                elif attr.type_string == 'List[dict]':
                     self.imports.List = True
-                    type_string = f'List[{nice_cls_name}]'
-                codes = self.gen_typed_dict_class(
+                    attr.type_string = f'List[{nice_cls_name}]'
+                obj.classes.append(self.gen_typed_dict_class(
                     value, nice_cls_name, recursive=True, level=level + 1
-                ) + ['', ''] + codes
-            if type_string == 'Dict':
+                ))
+            if attr.type_string == 'Dict':
                 self.imports.Dict = True
-            codes.append(f'    {identifier}: {type_string}{comment}')
-        return codes
+            obj.attr_list.append(attr)
+        return obj
 
     def gen_typed_dict_inline(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
         """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
