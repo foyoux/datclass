@@ -90,7 +90,6 @@ def main():
     parser.add_argument('-r', '--recursive', help='recursive generate dat class', action='store_true')
     parser.add_argument('-o', '--output', help='output file - *.py')
     parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
-    parser.add_argument('-i', '--inline', help='use inline model to generate TypedDict type', action='store_true')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
 
     args = parser.parse_args()
@@ -127,10 +126,7 @@ def main():
     datgen = DatGen()
 
     if args.dict:
-        if args.inline:
-            codes = datgen.gen_typed_dict_inline(body, name, recursive).codes
-        else:
-            codes = datgen.gen_typed_dict_class(body, name, recursive).codes
+        codes = datgen.gen_typed_dict(body, name, recursive).codes
     else:
         codes = datgen.gen_datclass(body, name, recursive).codes
 

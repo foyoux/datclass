@@ -65,20 +65,15 @@ class DictAttr:
     value: object
     # 值类型
     value_type: type = None
-    # 缓存
-    ok_name: str = None
-    comment: str = None
     type_string: str = None
 
     def __post_init__(self):
-        self.ok_name = get_ok_identifier(self.name)
-        self.comment = '' if self.name == self.ok_name else f'  # rename from \'{self.name}\''
         self.value_type = get_value_type(self.value)
         self.type_string = get_type_string(self.value_type)
 
     @property
     def code(self):
-        return f'    {self.ok_name}: {self.type_string}{self.comment}'
+        return f'\'{self.name}\': {self.type_string}'
 
 
 @dataclass
@@ -89,11 +84,10 @@ class DictClass:
 
     @property
     def codes(self, ):
-        codes = [f'class {self.name}(TypedDict):']
-        for attr in self.attr_list:
-            codes.append(attr.code)
+        attr_string = ', '.join([attr.code for attr in self.attr_list])
+        codes = [f'{self.name} = TypedDict(\'{self.name}\', {{{attr_string}}})']
         for cls in self.classes:
-            codes = cls.codes + ['', ''] + codes
+            codes = cls.codes + codes
         return codes
 
 
@@ -137,9 +131,9 @@ class DatGen:
         self.imports.DatClass = True
         # 存储类信息
         obj = Class(name=name)
-        for k, value in dat.items():
+        for name, value in dat.items():
             # 存储属性信息
-            attr = Attr(k, value)
+            attr = Attr(name, value)
             # 如果是 列表 或者 字典，且递归为真，则递归处理
             if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
                 nice_cls_name = self.get_nice_cls_name(attr.ok_name, level)
@@ -159,55 +153,26 @@ class DatGen:
             obj.attr_list.append(attr)
         return obj
 
-    def gen_typed_dict_class(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
-        """生成"""
-        try:
-            dat = merge_list_dict(dat)
-        except TypeError:
-            pass
-        self.imports.TypedDict = True
-        obj = DictClass(name=name)
-        for k, value in dat.items():
-            attr = DictAttr(k, value)
-            if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
-                nice_cls_name = self.get_nice_cls_name(attr.ok_name, level)
-                if isinstance(value, dict):
-                    attr.type_string = nice_cls_name
-                elif attr.type_string == 'List[dict]':
-                    self.imports.List = True
-                    attr.type_string = f'List[{nice_cls_name}]'
-                obj.classes.append(self.gen_typed_dict_class(
-                    value, nice_cls_name, recursive=True, level=level + 1
-                ))
-            if attr.type_string == 'Dict':
-                self.imports.Dict = True
-            obj.attr_list.append(attr)
-        return obj
-
-    def gen_typed_dict_inline(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
+    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
         """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
         try:
             dat = merge_list_dict(dat)
         except TypeError:
             pass
         self.imports.TypedDict = True
-        codes = []
-        name_type_dict = {}
+        obj = DictClass(name=name)
         for name, value in dat.items():
-            value_type = get_value_type(value)
-            type_string = get_type_string(value_type)
-            if recursive and value and (isinstance(value, dict) or type_string == 'List[dict]'):
+            attr = DictAttr(name, value)
+            if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
                 nice_cls_name = self.get_nice_cls_name(get_ok_identifier(name), level)
                 if isinstance(value, dict):
-                    type_string = nice_cls_name
-                elif type_string == 'List[dict]':
-                    type_string = f'List[{nice_cls_name}]'
-                codes = self.gen_typed_dict_inline(value, nice_cls_name, recursive=True, level=level + 1) + codes
-            if type_string == 'Dict':
+                    attr.type_string = nice_cls_name
+                elif attr.type_string == 'List[dict]':
+                    attr.type_string = f'List[{nice_cls_name}]'
+                obj.classes.append(self.gen_typed_dict(value, nice_cls_name, recursive=True, level=level + 1))
+            if attr.type_string == 'Dict':
                 self.imports.Dict = True
-            if type_string.startswith('List'):
+            if attr.type_string.startswith('List'):
                 self.imports.List = True
-            name_type_dict[name] = type_string
-        nice_cls_name = ', '.join([f'\'{k}\': {v}' for k, v in name_type_dict.items()])
-        codes.append(f'{name} = TypedDict(\'{name}\', {{{nice_cls_name}}})')
-        return codes
+            obj.attr_list.append(attr)
+        return obj
