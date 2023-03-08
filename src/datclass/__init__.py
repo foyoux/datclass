@@ -97,11 +97,11 @@ def main():
 
     name = args.name
     recursive = args.recursive
-    file = args.file
-    output = args.output
+    input_file = args.file
+    output_file = args.output
 
-    if file:
-        f = Path(file)
+    if input_file:
+        f = Path(input_file)
         if not f.exists():
             print(f'{f.absolute()} not exists')
             return
@@ -124,17 +124,17 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    g = DatGen()
+    datgen = DatGen()
 
     if args.dict and args.inline:
-        dat = g.gen_typed_dict(body, name, recursive)
+        codes = datgen.gen_typed_dict(body, name, recursive)
     else:
-        dat = g.gen_datclass(body, name, recursive, args.dict)
+        codes = datgen.gen_datclass(body, name, recursive, args.dict)
 
-    dat = '\n'.join(g.imports.to_list() + dat + [''])
+    dat = '\n'.join(datgen.imports.codes + codes + [''])
 
-    if output:
-        f = Path(output)
+    if output_file:
+        f = Path(output_file)
         f.parent.mkdir(exist_ok=True, parents=True)
         f.write_text(dat)
     else:

@@ -1,8 +1,8 @@
 import keyword
-from dataclasses import dataclass, asdict
-from typing import Union
+from dataclasses import dataclass, asdict, field
+from typing import Union, List
 
-from datclass.utils import get_ok_identifier, get_v_type, get_t_default, merge_list_dict, get_t_string
+from datclass.utils import get_ok_identifier, get_value_type, get_type_default, merge_list_dict, get_type_string
 
 
 @dataclass
@@ -14,8 +14,34 @@ class Imports:
     TypedDict: bool = False
     DatClass: bool = False
 
-    def to_list(self):
+    @property
+    def codes(self):
         return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
+
+
+@dataclass
+class Attr:
+    name: str = None
+    type: str = None
+    default: str = None
+    comment: str = ''
+
+    @property
+    def code(self):
+        return f'    {self.name}: {self.type} = {self.default}{self.comment}'
+
+
+@dataclass
+class Class:
+    name: str = None
+    attr_list: List[Attr] = field(default_factory=list)
+
+    @property
+    def codes(self, ):
+        codes = [f'@datclass', f'class {self.name}(DatClass):']
+        for attr in self.attr_list:
+            codes.append(attr.code)
+        return codes
 
 
 class DatGen:
@@ -56,28 +82,30 @@ class DatGen:
             self.imports.DatClass = True
             codes = ['@dataclass', f'class {name}(DatClass):']
 
-        for k_, v in dat.items():
-            k = get_ok_identifier(k_)
-            c = '' if k == k_ else f'  # rename from \'{k_}\''
-            v_t = get_v_type(v)
-            v_d = get_t_default(v_t)
-            t_s = get_t_string(v_t)
-            if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
-                s = self.get_nice_cls_name(k, level)
-                if isinstance(v, dict):
-                    t_s = s
-                elif t_s == 'List[dict]':
+        for k, value in dat.items():
+            identifier = get_ok_identifier(k)
+            comment = '' if identifier == k else f'  # rename from \'{k}\''
+            value_type = get_value_type(value)
+            value_default = get_type_default(value_type)
+            type_string = get_type_string(value_type)
+            if recursive and value and (isinstance(value, dict) or type_string == 'List[dict]'):
+                nice_cls_name = self.get_nice_cls_name(identifier, level)
+                if isinstance(value, dict):
+                    type_string = nice_cls_name
+                elif type_string == 'List[dict]':
                     self.imports.List = True
-                    t_s = f'List[{s}]'
-                codes = self.gen_datclass(v, s, recursive=True, dict_=dict_, level=level + 1) + ['', ''] + codes
-            if t_s == 'Dict':
+                    type_string = f'List[{nice_cls_name}]'
+                codes = self.gen_datclass(
+                    value, nice_cls_name, recursive=True, dict_=dict_, level=level + 1
+                ) + ['', ''] + codes
+            if type_string == 'Dict':
                 self.imports.Dict = True
             if dict_:
-                codes.append(f'    {k}: {t_s}{c}')
+                codes.append(f'    {identifier}: {type_string}{comment}')
             else:
-                if v_d.startswith('field'):
+                if value_default.startswith('field'):
                     self.imports.field = True
-                codes.append(f'    {k}: {t_s} = {v_d}{c}')
+                codes.append(f'    {identifier}: {type_string} = {value_default}{comment}')
 
         return codes
 
@@ -90,8 +118,8 @@ class DatGen:
         codes = []
         n_t_dict = {}
         for k, v in dat.items():
-            v_t = get_v_type(v)
-            t_s = get_t_string(v_t)
+            v_t = get_value_type(v)
+            t_s = get_type_string(v_t)
             if recursive and v and (isinstance(v, dict) or t_s == 'List[dict]'):
                 s = self.get_nice_cls_name(get_ok_identifier(k), level)
                 if isinstance(v, dict):

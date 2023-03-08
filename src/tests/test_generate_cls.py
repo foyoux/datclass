@@ -4,7 +4,7 @@ from datclass import DatGen
 def test_generate_cls(data):
     g = DatGen()
     codes = g.gen_datclass(data, recursive=True)
-    dat = '\n'.join(g.imports.to_list() + codes + [
+    dat = '\n'.join(g.imports.codes + codes + [
         'obj = Object(**data)',
         'assert obj.update_id == 1',
         'assert isinstance(obj.message, Message)',

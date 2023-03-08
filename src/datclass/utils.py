@@ -49,7 +49,7 @@ def get_ok_identifier(name: str):
     return s
 
 
-def get_v_type(v, none_type=str):
+def get_value_type(v, none_type=str):
     if v is None:
         return none_type
     if isinstance(v, dict):
@@ -70,19 +70,19 @@ def get_v_type(v, none_type=str):
     return type(v)
 
 
-def get_t_default(t):
-    o_t = get_origin(t)
-    if o_t is list:
+def get_type_default(t):
+    t = get_origin(t)
+    if t is list:
         return 'field(default_factory=list)'
     return 'None'
 
 
-def get_t_string(t):
+def get_type_string(t):
     if t is Dict:
         return 'Dict'
     if get_origin(t) is list:
         st = get_args(t)
-        return f'List[{get_t_string(st[0])}]' if st and not isinstance(None, st) else 'List'
+        return f'List[{get_type_string(st[0])}]' if st and not isinstance(None, st) else 'List'
     return t.__name__
 
 
