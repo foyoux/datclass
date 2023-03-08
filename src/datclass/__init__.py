@@ -1,15 +1,11 @@
 __title__ = 'datclass'
 __author__ = 'foyoux'
 __version__ = '0.0.1'
+
 __all__ = [
     'main',
     'DatClass',
-    'List',
-    'Dict',
-    'Union',
-    'TypedDict',
     'dataclass',
-    'field',
     'is_dataclass',
     'set_debug', 'set_extra',
     'DatGen',
@@ -18,17 +14,12 @@ __all__ = [
 import argparse
 import json
 import os
-from dataclasses import dataclass, is_dataclass, field
+from dataclasses import dataclass, is_dataclass
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import get_origin, get_args
 
 from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
-
-try:
-    from typing import get_origin, get_args, TypedDict
-except ImportError:
-    from typing_extensions import get_origin, get_args, TypedDict
 
 _DEBUG = False
 _EXTRA = True

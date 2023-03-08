@@ -1,4 +1,7 @@
-from datclass import dataclass, DatClass, Dict
+from dataclasses import dataclass
+from typing import Dict
+
+from datclass import DatClass
 
 
 @dataclass

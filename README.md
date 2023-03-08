@@ -145,7 +145,10 @@ datclass -r -o data.py data.json
 ### data.py
 
 ```py
-from datclass import dataclass, field, List, DatClass
+from dataclasses import dataclass, field
+from typing import List
+
+from datclass import DatClass
 
 
 @dataclass
@@ -226,8 +229,10 @@ datclass -r -o data.py data.json -n Response
 ### data.py
 
 ```py
-from datclass import dataclass, field, List, DatClass
+from dataclasses import dataclass, field
+from typing import List
 
+from datclass import DatClass
 
 @dataclass
 class CaptionEntities(DatClass):
@@ -306,7 +311,7 @@ datclass -r -o data.py data.json -n Response -d -i
 ### data.py
 
 ```py
-from datclass import List, TypedDict
+from typing import List, TypedDict
 
 
 CaptionEntities = TypedDict('CaptionEntities', {'offset': int, 'length': int, 'type': str, 'url': str})
@@ -318,23 +323,6 @@ Message = TypedDict('Message', {'message_id': int, 'chat': Chat, 'date': int, 'f
 Response = TypedDict('Response', {'update_id': int, 'message': Message})
 ```
 
-> 如果提示警告，没有代码提示，则从 `typing` 中导入 `TypedDict`
->
-> 为了兼容 Python 3.7，datclass 引入了 `typing_extensions`，但是它并没有真正实现 `TypedDict`
-
-
-```py
-from typing import TypedDict
-from datclass import List
-
-
-CaptionEntities = TypedDict('CaptionEntities', {'offset': int, 'length': int, 'type': str, 'url': str})
-Thumb = TypedDict('Thumb', {'file_id': str, 'file_unique_id': str, 'file_size': int, 'width': int, 'height': int})
-Video = TypedDict('Video', {'duration': int, 'width': int, 'height': int, 'mime_type': str, 'thumb': Thumb, 'file_id': str, 'file_unique_id': str, 'file_size': int})
-ForwardFrom = TypedDict('ForwardFrom', {'id': int, 'is_bot': bool, 'first_name': str, 'username': str})
-Chat = TypedDict('Chat', {'id': int, 'first_name': str, 'last_name': str, 'username': str, 'type': str})
-Message = TypedDict('Message', {'message_id': int, 'chat': Chat, 'date': int, 'forward_from': ForwardFrom, 'forward_date': int, 'video': Video, 'caption': str, 'caption_entities': List[CaptionEntities]})
-Response = TypedDict('Response', {'update_id': int, 'message': Message})
-```
+> 如果是 Python 3.7，请手动从 `typing_extensions` 中导入 `TypedDict`
 
 </details>

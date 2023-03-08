@@ -1,5 +1,5 @@
 import keyword
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from typing import Union, List
 
 from datclass.utils import get_ok_identifier, get_value_type, get_type_default, merge_list_dict, get_type_string
@@ -14,9 +14,52 @@ class Imports:
     TypedDict: bool = False
     DatClass: bool = False
 
+    def get_dataclasses_imports(self):
+        # from dataclasses import dataclass, field
+        tl = []
+        if self.dataclass:
+            tl.append('dataclass')
+        if self.field:
+            tl.append('field')
+        if tl:
+            return [f'from dataclasses import {", ".join(tl)}']
+        return []
+
+    def get_typing_imports(self):
+        # from typing import List, Dict, TypedDict
+        tl = []
+        if self.List:
+            tl.append('List')
+        if self.Dict:
+            tl.append('Dict')
+        if self.TypedDict:
+            tl.append('TypedDict')
+        if tl:
+            return [f'from typing import {", ".join(tl)}']
+        return []
+
+    def get_datclass_imports(self):
+        # from datclass import DatClass
+        if self.DatClass:
+            return ['from datclass import DatClass']
+        return []
+
     @property
     def codes(self):
-        return [f'from datclass import {", ".join([k for k, v in asdict(self).items() if v])}', '', '']
+        dataclasses_imports = self.get_dataclasses_imports()
+        typing_imports = self.get_typing_imports()
+        datclass_imports = self.get_datclass_imports()
+        tl = []
+        if dataclasses_imports:
+            tl += dataclasses_imports
+        if typing_imports:
+            tl += typing_imports
+        if datclass_imports:
+            if tl:
+                tl += [''] + datclass_imports
+            else:
+                tl += datclass_imports
+        return tl + ['', '']
 
 
 @dataclass
