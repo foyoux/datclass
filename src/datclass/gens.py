@@ -47,7 +47,7 @@ class Attr:
 class Class:
     name: str = None
     attr_list: List[Attr] = field(default_factory=list)
-    classes: List["Class"] = field(default_factory=list)
+    classes: List['Class'] = field(default_factory=list)
 
     @property
     def codes(self, ):
@@ -80,7 +80,7 @@ class DictAttr:
 class DictClass:
     name: str = None
     attr_list: List[DictAttr] = field(default_factory=list)
-    classes: List["DictClass"] = field(default_factory=list)
+    classes: List['DictClass'] = field(default_factory=list)
 
     @property
     def codes(self, ):
