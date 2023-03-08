@@ -78,8 +78,7 @@ options:
   -r, --recursive       recursive generate dat class
   -o OUTPUT, --output OUTPUT
                         output file - *.py
-  -d, --dict            generate TypedDict class
-  -i, --inline          use inline model to generate TypedDict type
+  -d, --dict            generate inline TypedDict type
 ```
 
 <details>
@@ -299,83 +298,6 @@ class Response(DatClass):
 
 <details>
 <summary>Example 3</summary>
-
-```sh
-datclass -r -o data.py data.json -n Response -d
-```
-
-### data.py
-
-> 如果提示警告，没有代码提示，则从 `typing` 中导入 `TypedDict`
->
-> 为了兼容 Python 3.7，datclass 引入了 `typing_extensions`，但是它并没有真正实现 `TypedDict`
-
-```py
-from datclass import List, TypedDict
-
-
-class CaptionEntities(TypedDict):
-    offset: int
-    length: int
-    type: str
-    url: str
-
-
-class Thumb(TypedDict):
-    file_id: str
-    file_unique_id: str
-    file_size: int
-    width: int
-    height: int
-
-
-class Video(TypedDict):
-    duration: int
-    width: int
-    height: int
-    mime_type: str
-    thumb: Thumb
-    file_id: str
-    file_unique_id: str
-    file_size: int
-
-
-class ForwardFrom(TypedDict):
-    id: int
-    is_bot: bool
-    first_name: str
-    username: str
-
-
-class Chat(TypedDict):
-    id: int
-    first_name: str
-    last_name: str
-    username: str
-    type: str
-
-
-class Message(TypedDict):
-    message_id: int
-    chat: Chat
-    date: int
-    forward_from: ForwardFrom
-    forward_date: int
-    video: Video
-    caption: str
-    caption_entities: List[CaptionEntities]
-
-
-class Response(TypedDict):
-    update_id: int
-    message: Message
-
-```
-
-</details>
-
-<details>
-<summary>Example 4</summary>
 
 ```sh
 datclass -r -o data.py data.json -n Response -d -i
