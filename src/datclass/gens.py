@@ -142,7 +142,7 @@ class DatGen:
         # 记录导入
         self.imports = Imports()
 
-    def get_nice_cls_name(self, attr_name: str, level=0):
+    def get_nice_cls_name(self, attr_name: str, level=0) -> str:
         """根据属性名获取一个合适的类名"""
         cls_name = attr_name.title().replace('_', '')
         if cls_name in self.class_map:
@@ -158,7 +158,7 @@ class DatGen:
         self.class_map.append(cls_name)
         return cls_name
 
-    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
+    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=False, level=0) -> Class:
         """
         :param dat: 列表 或者 字典
         :param name: 主类名称
@@ -196,7 +196,7 @@ class DatGen:
             obj.attr_list.append(attr)
         return obj
 
-    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0):
+    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0) -> DictClass:
         """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
         try:
             dat = merge_list_dict(dat)
