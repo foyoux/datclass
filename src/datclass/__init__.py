@@ -65,7 +65,8 @@ class DatClass:
             attr_type = FIELD.type
             origin = get_origin(attr_type)
             if origin is None and is_dataclass(attr_type):
-                setattr(self, attr_name, attr_type(**(getattr(self, attr_name) or {})))
+                attr = getattr(self, attr_name)
+                setattr(self, attr_name, attr_type(**attr) if attr else None)
                 continue
             for item_type in get_args(attr_type):
                 setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])

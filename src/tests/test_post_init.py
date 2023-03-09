@@ -46,4 +46,4 @@ def test_post_init():
     assert is_dataclass(u1)
     assert isinstance(u1, DatClass)
     assert u1.name == 'foyou'
-    assert isinstance(u1.info, Info)
+    assert u1.info is None
