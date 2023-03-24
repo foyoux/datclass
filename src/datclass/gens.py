@@ -190,6 +190,8 @@ class DatGen:
             # 如果类型是 Dict，则导入 Dict
             if attr.type_string == 'Dict':
                 self.imports.Dict = True
+            if attr.type_string.startswith('List'):
+                self.imports.List = True
             # 如果默认值有 field，则导入 field
             if attr.default_string.startswith('field'):
                 self.imports.field = True

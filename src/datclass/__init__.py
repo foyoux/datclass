@@ -68,7 +68,8 @@ class DatClass:
                 setattr(self, attr_name, attr_type(**attr) if attr else None)
                 continue
             for item_type in get_args(attr_type):
-                setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
+                if is_dataclass(item_type):
+                    setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
 
 
 def main():
