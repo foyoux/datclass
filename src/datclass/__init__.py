@@ -4,11 +4,10 @@ __version__ = '0.0.1'
 
 __all__ = [
     'main',
-    'DatClass',
-    'dataclass',
-    'is_dataclass',
-    'set_debug', 'set_extra',
     'DatGen',
+    'DatClass',
+    'set_debug',
+    'set_extra',
 ]
 
 import argparse
