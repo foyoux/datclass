@@ -31,7 +31,7 @@ class User(DatClass):
 @dataclass
 class Group(DatClass):
     name: str = None
-    users: List[User] = field(default_factory=list)  # 允许嵌套
+    users: List[User] = field(default_factory=list)  # 支持嵌套
     meta: Dict = field(default_factory=dict)
 
 
