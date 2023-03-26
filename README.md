@@ -64,21 +64,21 @@ if __name__ == '__main__':
 通过 JSON 生成 dataclass or TypedDict
 
 ```sh
-usage: datclass [-h] [-v] [-n NAME] [-r] [-o OUTPUT] [-d] [-i] [file]
+usage: datclass [-h] [-v] [-n NAME] [-o OUTPUT] [-d] [-R] [file]
 
 generate datclass & support nested and extra
 
 positional arguments:
   file                  input file - likes-json
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
   -n NAME, --name NAME  main dat class name
-  -r, --recursive       recursive generate dat class
   -o OUTPUT, --output OUTPUT
                         output file - *.py
-  -d, --dict            generate inline TypedDict type
+  -d, --dict            generate TypedDict class
+  -R, --no-recursive    not recursive generate dat class
 ```
 
 <details>
@@ -139,7 +139,7 @@ options:
 <summary>Example 1</summary>
 
 ```sh
-datclass -r -o data.py data.json
+datclass -o data.py data.json
 ```
 
 ### data.py
@@ -223,7 +223,7 @@ class Object(DatClass):
 <summary>Example 2</summary>
 
 ```sh
-datclass -r -o data.py data.json -n Response
+datclass -o data.py data.json -n Response
 ```
 
 ### data.py
@@ -305,7 +305,7 @@ class Response(DatClass):
 <summary>Example 3</summary>
 
 ```sh
-datclass -r -o data.py data.json -n Response -d -i
+datclass -o data.py data.json -n Response -d -i
 ```
 
 ### data.py

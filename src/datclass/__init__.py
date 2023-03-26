@@ -6,12 +6,11 @@ __all__ = [
     'main',
     'DatGen',
     'DatClass',
-    'set_debug',
-    'set_extra',
 ]
 
 import argparse
 import json
+import logging
 import os
 from dataclasses import dataclass, is_dataclass
 from pathlib import Path
@@ -20,34 +19,30 @@ from typing import get_origin, get_args
 from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
 
-_DEBUG = False
-_EXTRA = True
 _ORIGINAL_INIT = '__dataclass_init__'
 
-
-def set_debug(b):
-    global _DEBUG
-    _DEBUG = b
-
-
-def set_extra(b):
-    global _EXTRA
-    _EXTRA = b
+_log = logging.getLogger('datclass')
+_handler = logging.StreamHandler()
+_handler.setFormatter(
+    logging.Formatter(
+        fmt=f'%(asctime)s datclass.%(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+)
+_log.addHandler(_handler)
 
 
 def _datclass_init(self, *args, **kwargs):
     if kwargs:
         kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
-
-    if _DEBUG:
-        getattr(self, _ORIGINAL_INIT)(*args, **kwargs)
-    else:
-        getattr(self, _ORIGINAL_INIT)(
-            *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
-        )
-        if _EXTRA:
-            for attr, value in kwargs.items():
-                setattr(self, attr, value)
+    getattr(self, _ORIGINAL_INIT)(
+        *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
+    )
+    cls = self.__class__
+    for attr, value in kwargs.items():
+        _log.warning(f'{cls.__module__}.{cls.__name__}({attr} : {type(value).__name__} = {value!r})')
+        # 扩展字段
+        setattr(self, attr, value)
 
 
 @dataclass
@@ -79,9 +74,10 @@ def main():
     parser.add_argument('-v', '--version', action='version', version=epilog)
 
     parser.add_argument('-n', '--name', help='main dat class name', default='Object')
-    parser.add_argument('-r', '--recursive', help='recursive generate dat class', action='store_true')
     parser.add_argument('-o', '--output', help='output file - *.py')
     parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
+    parser.add_argument('-R', '--no-recursive', dest='recursive', help='not recursive generate dat class',
+                        action='store_false')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
 
     args = parser.parse_args()
@@ -115,14 +111,14 @@ def main():
         print('\nInvalid JSON data')
         return
 
-    datgen = DatGen()
+    gen = DatGen()
 
     if args.dict:
-        codes = datgen.gen_typed_dict(body, name, recursive).codes
+        codes = gen.gen_typed_dict(body, name, recursive).codes
     else:
-        codes = datgen.gen_datclass(body, name, recursive).codes
+        codes = gen.gen_datclass(body, name, recursive).codes
 
-    dat = '\n'.join(datgen.imports.codes + codes + [''])
+    dat = '\n'.join(gen.imports.codes + codes + [''])
 
     if output_file:
         f = Path(output_file)
