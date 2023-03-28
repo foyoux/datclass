@@ -94,7 +94,7 @@ def main():
             return
         text = f.read_text()
     else:
-        print(f'Please paste the JSON string - {"Ctrl-Z" if os.name == "nt" else "Ctrl-D"} Return')
+        print(f'Please paste the JSON/DICT string - {"Ctrl-Z" if os.name == "nt" else "Ctrl-D"} Return')
         data = []
         try:
             while True:
@@ -108,8 +108,11 @@ def main():
     try:
         body = json.loads(text)
     except json.JSONDecodeError:
-        print('\nInvalid JSON data')
-        return
+        try:
+            body = eval(text)
+        except:
+            print('\nInvalid JSON/DICT data')
+            return
 
     gen = DatGen()
 
