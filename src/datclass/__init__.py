@@ -92,7 +92,7 @@ def main():
         if not f.exists():
             print(f'{f.absolute()} not exists')
             return
-        text = f.read_text()
+        text = f.read_text(encoding='utf8')
     else:
         print(f'Please paste the JSON/DICT string - {"Ctrl-Z" if os.name == "nt" else "Ctrl-D"} Return')
         data = []
@@ -126,7 +126,7 @@ def main():
     if output_file:
         f = Path(output_file)
         f.parent.mkdir(exist_ok=True, parents=True)
-        f.write_text(dat)
+        f.write_text(dat, encoding='utf8')
     else:
         print()
         print(dat)

@@ -14,8 +14,8 @@ def main():
     init.write_text(re.sub(
         r'^__version__ = [\'"]\d+\.\d+\.\d+[\'"]$',
         f"__version__ = '{tag[1:]}'",
-        init.read_text(), flags=re.M
-    ))
+        init.read_text(encoding='utf8'), flags=re.M
+    ), encoding='utf8')
 
 
 if __name__ == '__main__':
