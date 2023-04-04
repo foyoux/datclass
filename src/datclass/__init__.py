@@ -115,6 +115,7 @@ def main():
             return
 
     gen = DatGen()
+    gen.class_map.append(name)
 
     if args.dict:
         codes = gen.gen_typed_dict(body, name, recursive).codes
