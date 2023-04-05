@@ -21,6 +21,10 @@ def get_ok_identifier(name: str):
     if name in _NAME_MAP:
         return _NAME_MAP[name]
 
+    # 处理双(多)下划线开头字段，替换为一个
+    if name.startswith('__'):
+        name = '_' + name.lstrip('_')
+
     # 如果是关键字，则加 '_' 后缀
     if keyword.iskeyword(name):
         s = f'{name}_'
