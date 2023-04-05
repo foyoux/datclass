@@ -2,7 +2,14 @@ import keyword
 from dataclasses import dataclass, field
 from typing import Union, List
 
-from datclass.utils import get_ok_identifier, get_value_type, get_type_default, merge_list_dict, get_type_string
+from datclass.utils import (
+    get_ok_identifier,
+    get_value_type,
+    get_type_default,
+    merge_list_dict,
+    get_type_string,
+    not_null,
+)
 
 
 @dataclass
@@ -164,10 +171,11 @@ class DatGen:
         :param recursive: 是否递归生成
         :param level: 层级，用以解决 类名 冲突问题
         """
+        assert dat
         self.class_map.append(name)
         try:
             dat = merge_list_dict(dat)
-        except TypeError:
+        except TypeError as e:
             pass
         # 这些针对模块
         self.imports.dataclass = True
@@ -178,7 +186,7 @@ class DatGen:
             # 存储属性信息
             attr = Attr(name, value)
             # 如果是 列表 或者 字典，且递归为真，则递归处理
-            if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
+            if recursive and not_null(value) and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
                 nice_cls_name = self.get_nice_cls_name(attr.ok_name, level)
                 if isinstance(value, dict):
                     attr.type_string = nice_cls_name
@@ -200,15 +208,16 @@ class DatGen:
 
     def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0) -> DictClass:
         """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
+        assert dat
         try:
             dat = merge_list_dict(dat)
-        except TypeError:
+        except TypeError as e:
             pass
         self.imports.TypedDict = True
         obj = DictClass(name=name)
         for name, value in dat.items():
             attr = DictAttr(name, value)
-            if recursive and value and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
+            if recursive and not_null(value) and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
                 nice_cls_name = self.get_nice_cls_name(get_ok_identifier(name), level)
                 if isinstance(value, dict):
                     attr.type_string = nice_cls_name

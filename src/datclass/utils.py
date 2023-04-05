@@ -86,6 +86,15 @@ def get_type_string(t):
     return t.__name__
 
 
+def not_null(value):
+    """[{}] [] {}"""
+    if value:
+        if isinstance(value, list) and not any(value):
+            return False
+        return True
+    return False
+
+
 def merge_list_dict(list_dict: List[dict]) -> Dict:
     if not isinstance(list_dict, list):
         raise TypeError(f'({list_dict}) is not list_dict')
@@ -102,6 +111,11 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
                 continue
             if isinstance(v, dict):
                 d[k] = merge_list_dict([d[k], v])
-            elif isinstance(v, list):
-                d[k] = merge_list_dict(d[k] + v)
+                continue
+            if isinstance(d[k], list) and isinstance(v, list):
+                try:
+                    ld = d[k] + v
+                    d[k] = [merge_list_dict(ld)]
+                except TypeError as e:
+                    pass
     return d
