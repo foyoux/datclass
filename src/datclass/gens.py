@@ -155,16 +155,16 @@ class DatGen:
             # 是关键字（eg: None），则加下划线
             cls_name = f'{cls_name}_'
         # 返回之前先记录
-        self.class_map.append(cls_name)
         return cls_name
 
-    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=False, level=0) -> Class:
+    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, level=0) -> Class:
         """
         :param dat: 列表 或者 字典
         :param name: 主类名称
         :param recursive: 是否递归生成
         :param level: 层级，用以解决 类名 冲突问题
         """
+        self.class_map.append(name)
         try:
             dat = merge_list_dict(dat)
         except TypeError:
