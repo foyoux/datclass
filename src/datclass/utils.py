@@ -96,8 +96,12 @@ def merge_list_dict(list_dict: List[dict]) -> Dict:
         for k, v in i.items():
             if k not in d:
                 d[k] = v
-            elif d[k] and isinstance(v, dict):
-                d[k] = merge_list_dict([d[k], v])
-            elif not d[k] and v:
+                continue
+            if d[k] is None:
                 d[k] = v
+                continue
+            if isinstance(v, dict):
+                d[k] = merge_list_dict([d[k], v])
+            elif isinstance(v, list):
+                d[k] = merge_list_dict(d[k] + v)
     return d
