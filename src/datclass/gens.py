@@ -69,7 +69,7 @@ class Imports:
         return tl + ['', '']
 
 
-@dataclass
+@dataclass(order=True)
 class Attr:
     name: str  # attr name
     value: object  # attr value
@@ -100,16 +100,16 @@ class Class:
     classes: List['Class'] = field(default_factory=list)
 
     @property
-    def codes(self, ):
+    def codes(self):
         codes = [f'@dataclass', f'class {self.name}(DatClass):']
-        for attr in self.attr_list:
+        for attr in sorted(self.attr_list):  # type: ignore
             codes.append(attr.code)
         for cls in self.classes:
             codes = cls.codes + ['', ''] + codes
         return codes
 
 
-@dataclass
+@dataclass(order=True)
 class DictAttr:
     name: str
     value: object
@@ -134,7 +134,7 @@ class DictClass:
 
     @property
     def codes(self, ):
-        attr_string = ', '.join([attr.code for attr in self.attr_list])
+        attr_string = ', '.join([attr.code for attr in sorted(self.attr_list)])  # type: ignore
         codes = [f'{self.name} = TypedDict(\'{self.name}\', {{{attr_string}}})']
         for cls in self.classes:
             codes = cls.codes + codes
