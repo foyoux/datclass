@@ -96,13 +96,14 @@ class Attr:
 @dataclass
 class Class:
     name: str = None
+    sort: bool = None
     attr_list: List[Attr] = field(default_factory=list)
     classes: List['Class'] = field(default_factory=list)
 
     @property
     def codes(self):
         codes = [f'@dataclass', f'class {self.name}(DatClass):']
-        for attr in sorted(self.attr_list):  # type: ignore
+        for attr in sorted(self.attr_list) if self.sort else self.attr_list:  # type: ignore
             codes.append(attr.code)
         for cls in self.classes:
             codes = cls.codes + ['', ''] + codes
@@ -129,12 +130,14 @@ class DictAttr:
 @dataclass
 class DictClass:
     name: str = None
+    sort: bool = None
     attr_list: List[DictAttr] = field(default_factory=list)
     classes: List['DictClass'] = field(default_factory=list)
 
     @property
-    def codes(self, ):
-        attr_string = ', '.join([attr.code for attr in sorted(self.attr_list)])  # type: ignore
+    def codes(self):
+        attr_string = ', '.join(
+            [attr.code for attr in (sorted(self.attr_list) if self.sort else self.attr_list)])  # type: ignore
         codes = [f'{self.name} = TypedDict(\'{self.name}\', {{{attr_string}}})']
         for cls in self.classes:
             codes = cls.codes + codes
@@ -164,11 +167,12 @@ class DatGen:
         # 返回之前先记录
         return cls_name
 
-    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, level=0) -> Class:
+    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0) -> Class:
         """
         :param dat: 列表 或者 字典
         :param name: 主类名称
         :param recursive: 是否递归生成
+        :param sort: 是否对属性列表进行排序
         :param level: 层级，用以解决 类名 冲突问题
         """
         assert dat
@@ -181,7 +185,7 @@ class DatGen:
         self.imports.dataclass = True
         self.imports.DatClass = True
         # 存储类信息
-        obj = Class(name=name)
+        obj = Class(name=name, sort=sort)
         for name, value in dat.items():
             # 存储属性信息
             attr = Attr(name, value)
@@ -194,7 +198,7 @@ class DatGen:
                     self.imports.List = True
                     attr.type_string = f'List[{nice_cls_name}]'
                 # 递归处理
-                obj.classes.append(self.gen_datclass(value, nice_cls_name, recursive=True, level=level + 1))
+                obj.classes.append(self.gen_datclass(value, nice_cls_name, recursive=True, sort=sort, level=level + 1))
             # 如果类型是 Dict，则导入 Dict
             if attr.type_string == 'Dict':
                 self.imports.Dict = True
@@ -206,7 +210,7 @@ class DatGen:
             obj.attr_list.append(attr)
         return obj
 
-    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=False, level=0) -> DictClass:
+    def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0) -> DictClass:
         """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
         assert dat
         try:
@@ -214,7 +218,7 @@ class DatGen:
         except TypeError as e:
             pass
         self.imports.TypedDict = True
-        obj = DictClass(name=name)
+        obj = DictClass(name=name, sort=sort)
         for name, value in dat.items():
             attr = DictAttr(name, value)
             if recursive and not_null(value) and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
@@ -223,7 +227,8 @@ class DatGen:
                     attr.type_string = nice_cls_name
                 elif attr.type_string == 'List[dict]':
                     attr.type_string = f'List[{nice_cls_name}]'
-                obj.classes.append(self.gen_typed_dict(value, nice_cls_name, recursive=True, level=level + 1))
+                obj.classes.append(
+                    self.gen_typed_dict(value, nice_cls_name, recursive=True, sort=sort, level=level + 1))
             if attr.type_string == 'Dict':
                 self.imports.Dict = True
             if attr.type_string.startswith('List'):
