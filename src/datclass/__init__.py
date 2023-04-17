@@ -6,6 +6,7 @@ __all__ = [
     'main',
     'DatGen',
     'DatClass',
+    'get_datclass',
 ]
 
 import argparse
@@ -32,7 +33,7 @@ _handler.setFormatter(
 _log.addHandler(_handler)
 
 
-def __get_datclass__(nested: bool = True, extra: bool = True, log: bool = True):
+def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
     def __datclass_init__(obj, *args, **kwargs):
         # 字段映射为合法字段
         if kwargs:
@@ -75,17 +76,7 @@ def __get_datclass__(nested: bool = True, extra: bool = True, log: bool = True):
     return __datclass__
 
 
-# noinspection PyPep8Naming
-class __dat_metaclass__(type):
-
-    def __new__(mcs, *args, **kwargs):
-        return __get_datclass__()
-
-    def __call__(cls, nested: bool = True, extra: bool = False, log: bool = True):
-        return __get_datclass__(nested=nested, extra=extra, log=log)
-
-
-DatClass = __dat_metaclass__()
+DatClass = get_datclass()
 
 
 def main():
