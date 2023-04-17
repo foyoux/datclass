@@ -32,39 +32,60 @@ _handler.setFormatter(
 _log.addHandler(_handler)
 
 
-def _datclass_init(self, *args, **kwargs):
-    if kwargs:
-        kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
-    getattr(self, _ORIGINAL_INIT)(
-        *args, **{k: kwargs.pop(k) for k in self.__dataclass_fields__ if k in kwargs}
-    )
-    cls = self.__class__
-    for attr, value in kwargs.items():
-        _log.warning(f'{cls.__module__}.{cls.__name__}({attr} : {type(value).__name__} = {value!r})')
-        # 扩展字段
-        setattr(self, attr, value)
+def __get_datclass__(nested: bool = True, extra: bool = True, log: bool = True):
+    def __datclass_init__(obj, *args, **kwargs):
+        # 字段映射为合法字段
+        if kwargs:
+            kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
+        # 调用原构造函数
+        getattr(obj, _ORIGINAL_INIT)(*args, **{k: kwargs.pop(k) for k in obj.__dataclass_fields__ if k in kwargs})
+        # 扩展字段或者打印缺失字段日志，并且有未定义的字段
+        if (extra or log) and kwargs:
+            cls = obj.__class__
+            for attr, value in kwargs.items():
+                if log:
+                    _log.warning(f'{cls.__module__}.{cls.__name__}({attr} : {type(value).__name__} = {value!r})')
+                if extra:
+                    setattr(obj, attr, value)
+
+    # noinspection PyPep8Naming
+    @dataclass
+    class __datclass__:
+        def __new__(cls, *args, **kwargs):
+            if not hasattr(cls, _ORIGINAL_INIT):
+                setattr(cls, _ORIGINAL_INIT, cls.__init__)
+                setattr(cls, '__init__', __datclass_init__)
+            return super().__new__(cls)
+
+        # noinspection PyUnusedLocal
+        def __post_init__(self, *args, **kwargs):
+            if not nested:
+                return
+            for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
+                attr_type = FIELD.type
+                origin = get_origin(attr_type)
+                if origin is None and is_dataclass(attr_type):
+                    attr = getattr(self, attr_name)
+                    setattr(self, attr_name, attr_type(**attr) if attr else None)
+                    continue
+                for item_type in get_args(attr_type):
+                    if is_dataclass(item_type):
+                        setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
+
+    return __datclass__
 
 
-@dataclass
-class DatClass:
+# noinspection PyPep8Naming
+class __dat_metaclass__(type):
 
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, _ORIGINAL_INIT):
-            setattr(cls, _ORIGINAL_INIT, cls.__init__)
-            setattr(cls, '__init__', _datclass_init)
-        return super().__new__(cls)
+    def __new__(mcs, *args, **kwargs):
+        return __get_datclass__()
 
-    def __post_init__(self, *args, **kwargs):
-        for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
-            attr_type = FIELD.type
-            origin = get_origin(attr_type)
-            if origin is None and is_dataclass(attr_type):
-                attr = getattr(self, attr_name)
-                setattr(self, attr_name, attr_type(**attr) if attr else None)
-                continue
-            for item_type in get_args(attr_type):
-                if is_dataclass(item_type):
-                    setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
+    def __call__(cls, nested: bool = True, extra: bool = False, log: bool = True):
+        return __get_datclass__(nested=nested, extra=extra, log=log)
+
+
+DatClass = __dat_metaclass__()
 
 
 def main():
@@ -110,10 +131,11 @@ def main():
     try:
         body = json.loads(text)
     except json.JSONDecodeError:
+        # noinspection PyBroadException
         try:
             body = eval(text)
-        except:
-            print('\nInvalid JSON/DICT data')
+        except Exception as e:
+            print('\nInvalid JSON/DICT data', e)
             return
 
     gen = DatGen()
