@@ -88,7 +88,7 @@ def main():
     parser.add_argument('-n', '--name', help='main dat class name', default='Object')
     parser.add_argument('-o', '--output', help='output file - *.py')
     parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_false')
-    parser.add_argument('-S', '--no-sort', help='sort attrs', action='store_true')
+    parser.add_argument('-S', '--no-sort', help='sort attrs', action='store_false')
     parser.add_argument('-R', '--no-recursive', dest='recursive', help='not recursive generate dat class',
                         action='store_false')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
@@ -99,7 +99,7 @@ def main():
     recursive = args.recursive
     input_file = args.file
     output_file = args.output
-    sort = args.sort
+    sort = args.no_sort
 
     if input_file:
         f = Path(input_file)
