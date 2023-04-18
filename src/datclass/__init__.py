@@ -87,7 +87,7 @@ def main():
 
     parser.add_argument('-n', '--name', help='main dat class name', default='Object')
     parser.add_argument('-o', '--output', help='output file - *.py')
-    parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_false')
+    parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
     parser.add_argument('-S', '--no-sort', help='sort attrs', action='store_false')
     parser.add_argument('-R', '--no-recursive', dest='recursive', help='not recursive generate dat class',
                         action='store_false')
