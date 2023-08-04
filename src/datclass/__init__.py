@@ -71,7 +71,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                     continue
                 for item_type in get_args(attr_type):
                     if is_dataclass(item_type):
-                        setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name)])
+                        setattr(self, attr_name, [item_type(**i) for i in getattr(self, attr_name) or []])
 
     return __datclass__
 
