@@ -67,7 +67,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                 origin = get_origin(attr_type)
                 if origin is None and is_dataclass(attr_type):
                     attr = getattr(self, attr_name)
-                    setattr(self, attr_name, attr_type(**attr) if attr else None)
+                    setattr(self, attr_name, attr if is_dataclass(attr) else attr_type(**attr) if attr else None)
                     continue
                 for item_type in get_args(attr_type):
                     if is_dataclass(item_type):
