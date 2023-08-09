@@ -15,7 +15,11 @@ import logging
 import os
 from dataclasses import dataclass, is_dataclass
 from pathlib import Path
-from typing import get_origin, get_args
+
+try:
+    from typing import get_origin, get_args
+except ImportError:
+    from typing_extensions import get_origin, get_args
 
 from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
