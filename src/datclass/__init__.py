@@ -39,7 +39,7 @@ _log.addHandler(_handler)
 
 def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
     def __datclass_init__(obj, *args, **kwargs):
-        # 字段映射为合法字段
+        # 任意字段名映射为合法 Python 字段名
         if kwargs:
             kwargs = {get_ok_identifier(k): v for k, v in kwargs.items()}
         # 调用原构造函数
