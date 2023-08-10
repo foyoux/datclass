@@ -49,7 +49,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
             cls = obj.__class__
             for attr, value in kwargs.items():
                 if log:
-                    _log.warning(f'{cls.__module__}.{cls.__name__}({attr} : {type(value).__name__} = {value!r})')
+                    _log.warning(f'{cls.__module__}.{cls.__name__}({attr}: {type(value).__name__} = {value!r})')
                 if extra:
                     setattr(obj, attr, value)
 
