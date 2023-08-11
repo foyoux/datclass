@@ -25,6 +25,7 @@ from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
 
 _ORIGINAL_INIT = '__datclass_init__'
+_RENAME_ATTRS = '__rename_attrs__'
 
 _log = logging.getLogger('datclass')
 _handler = logging.StreamHandler()
@@ -95,6 +96,16 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                                 [i if is_dataclass(i) else item_type(**i) for i in getattr(self, attr_name) or []])
 
         @classmethod
+        def restore_attr(cls, attr_name: str) -> str:
+            if hasattr(cls, _RENAME_ATTRS):
+                rename_attrs = getattr(cls, _RENAME_ATTRS)
+                if not isinstance(rename_attrs, dict):
+                    raise TypeError(f'{cls.__class__.__name__}.{_RENAME_ATTRS} must be dict')
+                if attr_name in rename_attrs:
+                    return rename_attrs[attr_name]
+            return attr_name
+
+        @classmethod
         def from_str(cls, text: str):
             return cls(**json.loads(text))
 
@@ -106,7 +117,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
             for k, v in self.__dict__.items():
                 if ignore_none and v is None:
                     continue
-                d[k] = __value_to_dict__(v, ignore_none=ignore_none)
+                d[self.restore_attr(k)] = __value_to_dict__(v, ignore_none=ignore_none)
             return d
 
         def to_tuple(self) -> tuple:
