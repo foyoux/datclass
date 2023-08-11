@@ -32,6 +32,8 @@ def get_ok_identifier(name: str):
         # 关键字是合法标识符，所以先判断关键字，再判断标识符
         s = name
     else:
+        # 先替换 "-" 为 "_"
+        name = name.replace('-', '_')
         # 不是标准标识符，过滤掉除 下划线、大小写字母、数字 的其他字符
         s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
         if s:
