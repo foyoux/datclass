@@ -13,7 +13,7 @@ import argparse
 import json
 import logging
 import os
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass, is_dataclass, asdict, astuple
 from pathlib import Path
 
 try:
@@ -77,6 +77,27 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                     if is_dataclass(item_type):
                         setattr(self, attr_name,
                                 [i if is_dataclass(i) else item_type(**i) for i in getattr(self, attr_name) or []])
+
+        @classmethod
+        def from_str(cls, text: str):
+            return cls(**json.loads(text))
+
+        def to_str(self, ensure_ascii=True, indent=None) -> str:
+            return json.dumps(self.to_dict(), ensure_ascii=ensure_ascii, indent=indent)
+
+        def to_dict(self) -> dict:
+            return asdict(self)
+
+        def to_tuple(self) -> tuple:
+            return astuple(self)
+
+        @classmethod
+        def from_file(cls, file_path: str, encoding: str = 'utf8'):
+            text = Path(file_path).read_text(encoding=encoding)
+            return cls.from_str(text)
+
+        def to_file(self, file_path: str, encoding: str = 'utf8', ensure_ascii=True, indent=None):
+            Path(file_path).write_text(self.to_str(ensure_ascii=ensure_ascii, indent=indent), encoding=encoding)
 
     return __datclass__
 
