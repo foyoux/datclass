@@ -82,10 +82,10 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
         def from_str(cls, text: str):
             return cls(**json.loads(text))
 
-        def to_str(self, ensure_ascii=True, indent=None, ignore_none: bool = False) -> str:
+        def to_str(self, ensure_ascii=True, indent=None, ignore_none=False) -> str:
             return json.dumps(self.to_dict(ignore_none=ignore_none), ensure_ascii=ensure_ascii, indent=indent)
 
-        def to_dict(self, ignore_none: bool = False) -> dict:
+        def to_dict(self, ignore_none=False) -> dict:
             if ignore_none:
                 return asdict(self, dict_factory=lambda d: {k: v for k, v in d if v is not None})
             return asdict(self)
