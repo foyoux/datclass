@@ -53,6 +53,22 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                 if extra:
                     setattr(obj, attr, value)
 
+    def __value_to_dict__(v, ignore_none=False):
+        if is_dataclass(v):
+            if isinstance(v, __datclass__):
+                v = v.to_dict(ignore_none=ignore_none)
+            else:
+                if ignore_none:
+                    v = asdict(v, dict_factory=lambda d1: {k1: v1 for k1, v1 in d1 if v1 is not None})
+                else:
+                    v = asdict(v)
+        elif isinstance(v, list):
+            vl = []
+            for i in v:
+                vl.append(__value_to_dict__(i, ignore_none=ignore_none))
+            return vl
+        return v
+
     # noinspection PyPep8Naming
     @dataclass
     class __datclass__:
@@ -86,9 +102,12 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
             return json.dumps(self.to_dict(ignore_none=ignore_none), ensure_ascii=ensure_ascii, indent=indent)
 
         def to_dict(self, ignore_none=False) -> dict:
-            if ignore_none:
-                return asdict(self, dict_factory=lambda d: {k: v for k, v in d if v is not None})
-            return asdict(self)
+            d = {}
+            for k, v in self.__dict__.items():
+                if ignore_none and v is None:
+                    continue
+                d[k] = __value_to_dict__(v, ignore_none=ignore_none)
+            return d
 
         def to_tuple(self) -> tuple:
             return astuple(self)
