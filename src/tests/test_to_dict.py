@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict
 
 from datclass import DatClass
 
@@ -175,3 +175,74 @@ def test_to_dict_extra():
     assert obj.to_dict(ignore_none=True) == json.loads(s_extra)
     assert obj.to_str(indent=2, ignore_none=True) == s_extra
     assert obj.to_str(indent=2, ignore_none=True) == s_extra
+
+
+@dataclass
+class Urlparams(DatClass):
+    depth_1_utm_source: str = None  # rename from 'depth_1-utm_source'
+    utm_medium: str = None
+
+
+@dataclass
+class Data3(DatClass):
+    ab_strategy: str = None
+    dist_request_id: str = None
+    extra: str = None
+    index: str = None
+    mod: str = None
+    strategy: str = None
+
+
+@dataclass
+class ReportData(DatClass):
+    data: Data3 = None
+    eventClick: bool = None
+    eventView: bool = None
+    urlParams: Urlparams = None
+
+
+@dataclass
+class Items(DatClass):
+    ad_resource_info: str = None
+    csdn_tags: str = None
+    debug_ext: str = None
+    ext: Dict = None
+    index: int = None
+    media_asset_info: str = None
+    media_asset_info_v2: str = None
+    product_id: str = None
+    product_id_and_product_type: str = None
+    product_type: str = None
+    recommend_type: str = None
+    redpacket_order_no: str = None
+    report_data: ReportData = None
+    resource_id: str = None
+    strategy_id: str = None
+    style: str = None
+    task_id: str = None
+    username: str = None
+
+
+@dataclass
+class Abtest(DatClass):
+    case_code: str = None
+
+
+@dataclass
+class Data(DatClass):
+    abtest: Abtest = None
+    ext: Dict = None
+    items: List[Items] = field(default_factory=list)
+    size: int = None
+
+
+@dataclass
+class XXCls123(DatClass):
+    code: int = None
+    data: Data = None
+    message: str = None
+
+
+def test_to_dict_extra2(testdata2):
+    obj = XXCls123(**testdata2)
+    assert obj.to_dict() == testdata2

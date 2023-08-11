@@ -57,3 +57,56 @@ def data():
             ]
         }
     }
+
+
+@pytest.fixture
+def testdata2():
+    """to_dict extra test"""
+    return {
+        "code": 200,
+        "message": "success",
+        "data": {
+            "ext": {},
+            "abtest": {
+                "case_code": "171^v3^default_word_new"
+            },
+            "size": 1,
+            "items": [
+                {
+                    "username": None,
+                    "product_id": "dataclass",
+                    "product_type": "hot_word",
+                    "resource_id": "",
+                    "style": "word_1",
+                    "strategy_id": "alirecmd",
+                    "ext": {},
+                    "report_data": {
+                        "eventClick": True,
+                        "data": {
+                            "mod": "",
+                            "extra": "ednsjk",
+                            "dist_request_id": "1691760495554_17246",
+                            "ab_strategy": "default",
+                            "index": "1",
+                            "strategy": "alirecmd"
+                        },
+                        "urlParams": {
+                            "utm_medium": "xsnjck",
+                            "depth_1_utm_source": "csd9wn"
+                        },
+                        "eventView": True
+                    },
+                    "recommend_type": "ali",
+                    "media_asset_info": None,
+                    "media_asset_info_v2": None,
+                    "task_id": None,
+                    "index": 1,
+                    "product_id_and_product_type": "dataclass-null-null",
+                    "debug_ext": None,
+                    "ad_resource_info": None,
+                    "redpacket_order_no": None,
+                    "csdn_tags": None
+                }
+            ]
+        }
+    }
