@@ -24,7 +24,7 @@ except ImportError:
 from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
 
-_ORIGINAL_INIT = '__dataclass_init__'
+_ORIGINAL_INIT = '__datclass_init__'
 
 _log = logging.getLogger('datclass')
 _handler = logging.StreamHandler()
