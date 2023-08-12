@@ -1,6 +1,6 @@
 # datclass
 
-python package datclass
+python dataclass nested & extra
 
 ## 安装
 
