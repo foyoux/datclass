@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field, is_dataclass
 from typing import List, Dict
 
@@ -9,7 +7,7 @@ from datclass import DatClass
 @dataclass
 class Person(DatClass):
     name: str = None
-    friends: List[Person] = field(default_factory=list)
+    friends: List['Person'] = field(default_factory=list)
 
 
 def test_field_default_factory_list():

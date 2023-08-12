@@ -1,5 +1,4 @@
-import datclass
-from datclass import DatGen
+from datclass.__main__ import DatGen
 
 dat = """
 {

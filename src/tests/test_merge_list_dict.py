@@ -1,4 +1,4 @@
-from datclass.utils import merge_list_dict
+from datclass.__main__ import merge_list_dict
 
 
 def test_merge_list_dict():

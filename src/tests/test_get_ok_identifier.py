@@ -1,4 +1,4 @@
-from datclass import get_ok_identifier
+from datclass.__main__ import get_ok_identifier
 
 
 def test_get_ok_identifier():

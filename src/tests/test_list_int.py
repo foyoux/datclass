@@ -8,7 +8,8 @@ TypeError: type object argument after ** must be a mapping, not int
 from dataclasses import dataclass, field
 from typing import List
 
-from datclass import DatGen, DatClass
+from datclass import DatClass
+from datclass.__main__ import DatGen
 
 dat = {
     'name': 'foyou',

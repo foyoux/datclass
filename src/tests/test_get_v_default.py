@@ -1,4 +1,4 @@
-from datclass.utils import get_value_type, get_type_default
+from datclass.__main__ import get_value_type, get_type_default
 
 
 def test_get_v_default():

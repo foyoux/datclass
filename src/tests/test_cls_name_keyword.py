@@ -1,4 +1,4 @@
-from datclass import DatGen
+from datclass.__main__ import DatGen
 
 
 def test_cls_name_keyword():

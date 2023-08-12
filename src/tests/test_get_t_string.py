@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from datclass.utils import get_type_string
+from datclass.__main__ import get_type_string
 
 
 def test_get_t_string():

@@ -60,7 +60,7 @@ class A2U3Sadsb(DatClass):
     username: str = None
 
     __rename_attrs__: ClassVar[Dict[str, str]] = {
-        'a_12U3sadsbj': '((12&*(U3sadsbj%^%$^*(',
+        '((12&*(U3sadsbj%^%$^*(': 'a_12U3sadsbj',
     }
 
 
@@ -77,7 +77,7 @@ class Message(DatClass):
     video: Video = None
 
     __rename_attrs__: ClassVar[Dict[str, str]] = {
-        'a_2U3sadsb': '2&*(U3sadsb',
+        '2&*(U3sadsb': 'a_2U3sadsb',
     }
 
 

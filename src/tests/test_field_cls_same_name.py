@@ -1,4 +1,4 @@
-from datclass import DatGen
+from datclass.__main__ import DatGen
 
 
 def test_field_cls_same_name():

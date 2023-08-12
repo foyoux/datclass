@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from datclass.utils import get_value_type
+from datclass.__main__ import get_value_type
 
 
 def test_get_v_type():

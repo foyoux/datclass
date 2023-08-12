@@ -1,4 +1,4 @@
-from datclass.utils import not_null
+from datclass.__main__ import not_null
 
 
 def test_not_null():
