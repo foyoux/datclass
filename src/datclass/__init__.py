@@ -15,6 +15,7 @@ import logging
 import os
 from dataclasses import dataclass, is_dataclass, asdict, astuple
 from pathlib import Path
+from typing import Dict, ClassVar
 
 try:
     from typing import get_origin, get_args
@@ -24,9 +25,10 @@ except ImportError:
 from datclass.gens import DatGen
 from datclass.utils import get_ok_identifier
 
+# 常量
 _ORIGINAL_INIT = '__datclass_init__'
-_RENAME_ATTRS = '__rename_attrs__'
 
+# 日志
 _log = logging.getLogger('datclass')
 _handler = logging.StreamHandler()
 _handler.setFormatter(
@@ -54,7 +56,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                 if extra:
                     setattr(obj, attr, value)
 
-    def __value_to_dict__(v, ignore_none=False):
+    def __to_value__(v, ignore_none=False):
         if is_dataclass(v):
             if isinstance(v, __datclass__):
                 v = v.to_dict(ignore_none=ignore_none)
@@ -66,7 +68,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
         elif isinstance(v, list):
             vl = []
             for i in v:
-                vl.append(__value_to_dict__(i, ignore_none=ignore_none))
+                vl.append(__to_value__(i, ignore_none=ignore_none))
             return vl
         return v
 
@@ -95,15 +97,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
                         setattr(self, attr_name,
                                 [i if is_dataclass(i) else item_type(**i) for i in getattr(self, attr_name) or []])
 
-        @classmethod
-        def restore_attr(cls, attr_name: str) -> str:
-            if hasattr(cls, _RENAME_ATTRS):
-                rename_attrs = getattr(cls, _RENAME_ATTRS)
-                if not isinstance(rename_attrs, dict):
-                    raise TypeError(f'{cls.__class__.__name__}.{_RENAME_ATTRS} must be dict')
-                if attr_name in rename_attrs:
-                    return rename_attrs[attr_name]
-            return attr_name
+        __rename_attrs__: ClassVar[Dict[str, str]] = {}
 
         @classmethod
         def from_str(cls, text: str):
@@ -117,7 +111,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
             for k, v in self.__dict__.items():
                 if ignore_none and v is None:
                     continue
-                d[self.restore_attr(k)] = __value_to_dict__(v, ignore_none=ignore_none)
+                d[self.__rename_attrs__.get(k, k)] = __to_value__(v, ignore_none=ignore_none)
             return d
 
         def to_tuple(self) -> tuple:
