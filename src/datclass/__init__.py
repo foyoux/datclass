@@ -85,14 +85,13 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
         def __post_init__(self, *args, **kwargs):
             if not nested:
                 return
-            for attr_name, FIELD in self.__dataclass_fields__.items():  # type: ignore
-                attr_type = FIELD.type
-                origin = get_origin(attr_type)
-                if origin is None and is_dataclass(attr_type):
+            for attr_name, field in self.__dataclass_fields__.items():  # type: ignore
+                origin = get_origin(field.type)
+                if origin is None and is_dataclass(field.type):
                     attr = getattr(self, attr_name)
-                    setattr(self, attr_name, attr if is_dataclass(attr) else attr_type(**attr) if attr else None)
+                    setattr(self, attr_name, attr if is_dataclass(attr) else field.type(**attr) if attr else None)
                     continue
-                for item_type in get_args(attr_type):
+                for item_type in get_args(field.type):
                     if is_dataclass(item_type):
                         setattr(self, attr_name,
                                 [i if is_dataclass(i) else item_type(**i) for i in getattr(self, attr_name) or []])
