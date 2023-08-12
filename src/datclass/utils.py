@@ -4,9 +4,9 @@ import string
 from typing import Dict, List
 
 try:
-    from typing import get_origin, get_args, TypedDict
+    from typing import get_origin, get_args
 except ImportError:
-    from typing_extensions import get_origin, get_args, TypedDict
+    from typing_extensions import get_origin, get_args
 
 _NAME_MAP = {}
 
@@ -38,7 +38,7 @@ def get_ok_identifier(name: str):
         s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
         if s:
             if s[0] in string.digits:
-                s = f'a_{s}'
+                s = f'a_{s}'  # attribute
             elif keyword.iskeyword(s):
                 s = f'{s}_'
             elif not s.isidentifier():
