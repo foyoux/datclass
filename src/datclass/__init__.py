@@ -13,6 +13,8 @@ from dataclasses import dataclass, is_dataclass, asdict, astuple
 from pathlib import Path
 from typing import Dict, ClassVar
 
+from datclass.__main__ import get_ok_identifier
+
 try:
     from typing import get_origin, get_args
 except ImportError:
@@ -44,10 +46,14 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True):
         # 扩展字段或者打印缺失字段日志，并且有未定义的字段
         if (extra or log) and kwargs:
             for attr, value in kwargs.items():
+                ok_attr = get_ok_identifier(attr)
                 if log:
-                    _log.warning(f'{cls.__module__}.{cls.__name__}({attr}: {type(value).__name__} = {value!r})')
+                    _log.warning(f'{cls.__module__}.{cls.__name__}({ok_attr}: {type(value).__name__} = {value!r})'
+                                 f'{"" if ok_attr == attr else f"  # rename from {attr!r}"}')
                 if extra:
-                    setattr(obj, attr, value)
+                    setattr(obj, ok_attr, value)
+                    if ok_attr != attr and ok_attr not in obj.__rename_attrs__:
+                        obj.__rename_attrs__[attr] = ok_attr
 
     def __to_value__(v, ignore_none=False):
         if is_dataclass(v):

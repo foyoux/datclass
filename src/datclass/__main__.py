@@ -208,7 +208,7 @@ class Attr:
 
     def __post_init__(self):
         self.ok_name = get_ok_identifier(self.name)
-        self.comment = '' if self.name == self.ok_name else f'  # rename from \'{self.name}\''
+        self.comment = '' if self.name == self.ok_name else f'  # rename from {self.name!r}'
         self.value_type = get_value_type(self.value)
         self.default_string = get_type_default(self.value_type)
         self.type_string = get_type_string(self.value_type)
@@ -235,7 +235,7 @@ class Class:
         if rename_attrs:
             codes.append('')
             codes.append('    __rename_attrs__ = {')
-            codes.extend([f'        \'{attr.name}\': \'{attr.ok_name}\',' for attr in rename_attrs])
+            codes.extend([f'        {attr.name!r}: {attr.ok_name!r},' for attr in rename_attrs])
             codes.append('    }')
         for cls in self.classes:
             codes = cls.codes + ['', ''] + codes
@@ -256,7 +256,7 @@ class DictAttr:
 
     @property
     def code(self):
-        return f'\'{self.name}\': {self.type_string}'
+        return f'{self.name!r}: {self.type_string}'
 
 
 @dataclass
@@ -270,7 +270,7 @@ class DictClass:
     def codes(self):
         attr_string = ', '.join(
             [attr.code for attr in (sorted(self.attr_list) if self.sort else self.attr_list)])  # type: ignore
-        codes = [f'{self.name} = TypedDict(\'{self.name}\', {{{attr_string}}})']
+        codes = [f'{self.name} = TypedDict({self.name!r}, {{{attr_string}}})']
         for cls in self.classes:
             codes = cls.codes + codes
         return codes
