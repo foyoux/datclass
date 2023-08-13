@@ -103,8 +103,9 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
         def from_str(cls, text: str):
             return cls(**json.loads(text))
 
-        def to_str(self, ensure_ascii=True, indent=None, ignore_none=False) -> str:
-            return json.dumps(self.to_dict(ignore_none=ignore_none), ensure_ascii=ensure_ascii, indent=indent)
+        def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False) -> str:
+            return json.dumps(self.to_dict(ignore_none=ignore_none), ensure_ascii=ensure_ascii, indent=indent,
+                              sort_keys=sort_keys)
 
         def to_dict(self, ignore_none=False) -> dict:
             d = {}
@@ -123,9 +124,10 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
             text = Path(file_path).read_text(encoding=encoding)
             return cls.from_str(text)
 
-        def to_file(self, file_path: str, encoding: str = 'utf8', ensure_ascii=True, indent=None, ignore_none=False):
-            Path(file_path).write_text(self.to_str(ensure_ascii=ensure_ascii, indent=indent, ignore_none=ignore_none),
-                                       encoding=encoding)
+        def to_file(self, file_path: str, encoding: str = 'utf8', ensure_ascii=True, indent=None, ignore_none=False,
+                    sort_keys=False):
+            Path(file_path).write_text(self.to_str(ensure_ascii=ensure_ascii, indent=indent, ignore_none=ignore_none,
+                                                   sort_keys=sort_keys), encoding=encoding)
 
     return __datclass__
 
