@@ -16,14 +16,27 @@ pip install git+https://github.com/foyoux/datclass.git
 
 ```py
 from dataclasses import dataclass
+from typing import List
 
+# 默认 DatClass 支持嵌套、扩展字段，缺失字段会打印日志
 from datclass import DatClass
+
+
+# 自定义
+# from datclass import get_datclass
+# DatClass = get_datclass(log=False)
 
 
 @dataclass
 class User(DatClass):
     name: str
     age: int
+
+
+@dataclass
+class Group(DatClass):
+    name: str
+    users: List[User]
 
 
 if __name__ == '__main__':
@@ -41,5 +54,15 @@ if __name__ == '__main__':
 
     user4 = User.from_file('user.json')
     tuple4 = user4.to_tuple()
+
+    grp = Group(name='group1', users=[user1, user2, user3, user4])
+    grp.to_file('group.json', indent=4, ignore_none=True, sort_keys=True)
+
+    for user in grp.users:
+        print(user.name, user.age)
+
+    user = {'name': 'foo', 'age': 18, 'sex': 1}
+    user5 = User(**user)
+    assert user5.to_dict() == user
 
 ```
