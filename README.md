@@ -2,11 +2,11 @@
 
 python dataclass nested & extra
 
-扩展官方 [dataclass](https://docs.python.org/zh-cn/3/library/dataclasses.html)，支持嵌套和扩展字段
+Extending the official [dataclass](https://docs.python.org/zh-cn/3/library/dataclasses.html) to support nested and extended fields.
 
-## 安装
+## Install
 
-[![python version](https://img.shields.io/pypi/pyversions/datclass)](https://pypi.org/project/datclass/)  [![Downloads](https://static.pepy.tech/personalized-badge/datclass?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/datclass)
+[![PyPI](https://img.shields.io/pypi/v/datclass)](https://pypi.org/project/datclass/) [![python version](https://img.shields.io/pypi/pyversions/datclass)](https://pypi.org/project/datclass/)  [![Downloads](https://static.pepy.tech/personalized-badge/datclass?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/datclass)
 
 ```sh
 pip install -U datclass
@@ -14,20 +14,21 @@ pip install git+ssh://git@github.com/foyoux/datclass.git
 pip install git+https://github.com/foyoux/datclass.git
 ```
 
-## 用法示例
+## Usage example
 
-### 示例 1
+### Example 1
 
 ```py
 from dataclasses import dataclass
 from typing import List
 
-# 默认 DatClass 支持嵌套、扩展字段，缺失字段会打印日志
+# Default `dataclass` supports nested and extended fields. Missing fields will be logged.
 from datclass import DatClass
 
 
-# 自定义
+# Custom `dataclass`
 # from datclass import get_datclass
+# Missing fields will not be logged.
 # DatClass = get_datclass(log=False)
 
 
@@ -71,7 +72,7 @@ if __name__ == '__main__':
 
 ```
 
-### 示例 2
+### Example 2
 
 ```py
 from dataclasses import dataclass
@@ -86,14 +87,14 @@ class User(DatClass):
     age: int
     attr_123: str
 
-    # 重命名字段
+    # Renaming fields.
     __rename_attrs__: ClassVar[Dict[str, str]] = {
         'Name': 'name',
         'Age': 'age',
         '123#$^%^%*': 'attr_123'
     }
 
-    # 这样写也是可以的
+    # This way of writing is also acceptable.
     # __rename_attrs__ = {
     #     'Name': 'name',
     #     'Age': 'age',
@@ -108,18 +109,18 @@ if __name__ == '__main__':
 
 ```
 
-## 自动生成 `DatClass`
+## Automatically generate `DataClass`
 
-详见 `datclass` 命令
+See the `datclass` command for details.
 
 ```sh
 $ datclass -h
 
 ```
 
-### 示例 1
+### Example 1
 
-输入 user.json
+Input user.json
 
 ```json
 {
@@ -129,14 +130,14 @@ $ datclass -h
 }
 ```
 
-执行命令
+Execute the command
 
 ```sh
 $ datclass -o user.py user.json
 
 ```
 
-输出 user.py
+Output user.py
 
 ```py
 from dataclasses import dataclass

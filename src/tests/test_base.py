@@ -1,7 +1,7 @@
 """
-测试基本用法
-1. 数据类型嵌套
-2. 字段扩展
+Test basic usage.
+1. Nested data classes
+2. Field extension
 
 """
 from dataclasses import dataclass

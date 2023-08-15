@@ -2,8 +2,8 @@ from datclass.__main__ import DatGen
 
 data = {
     'product': {
-        'name': '东北大辣条',
-        'price': '￥2.00'
+        'name': 'Northeast Big Spicy Strip',
+        'price': '$0.50'
     }
 }
 

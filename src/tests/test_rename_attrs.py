@@ -10,14 +10,14 @@ class User(DatClass):
     age: int
     attr_123: str
 
-    # 重命名字段
+    # Rename the field.
     __rename_attrs__: ClassVar[Dict[str, str]] = {
         'Name': 'name',
         'Age': 'age',
         '123#$^%^%*': 'attr_123'
     }
 
-    # 这样写也是可以的
+    # This way of writing is also acceptable.
     # __rename_attrs__ = {
     #     'Name': 'name',
     #     'Age': 'age',
@@ -37,14 +37,14 @@ class User2(DatClass):
     age: int
     attr_123: str
 
-    # 重命名字段
+    # Rename the field.
     # __rename_attrs: ClassVar[Dict[str, str]] = {
     #     'Name': 'name',
     #     'Age': 'age',
     #     '123#$^%^%*': 'attr_123'
     # }
 
-    # 这样写也是可以的
+    # This way of writing is also acceptable.
     __rename_attrs__ = {
         'Name': 'name',
         'Age': 'age',

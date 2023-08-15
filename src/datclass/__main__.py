@@ -144,9 +144,9 @@ class Imports:
 class Attr:
     name: str  # attr name
     value: object  # attr value
-    # 值类型
+    # Value type
     value_type: type = None
-    # 缓存
+    # Transformed attribute name
     ok_name: str = None
     comment: str = None
     type_string: str = None
@@ -176,7 +176,7 @@ class Class:
         codes = [f'@dataclass', f'class {self.name}(DatClass):']
         for attr in sorted(self.attrs) if self.sort else self.attrs:  # type: ignore
             codes.append(attr.code)
-        # 处理 __rename_attrs__
+        # Handling `__rename_attrs__`.
         rename_attrs = [attr for attr in self.attrs if attr.name != attr.ok_name]
         if rename_attrs:
             codes.append('')
@@ -192,7 +192,7 @@ class Class:
 class DictAttr:
     name: str
     value: object
-    # 值类型
+    # Value type
     value_type: type = None
     type_string: str = None
 
@@ -225,33 +225,34 @@ class DictClass:
 class DatGen:
 
     def __init__(self):
-        # 记录导入，当重复时，根据层级 level 重命名
+        # Record imports, and when there's a duplicate, rename based on the hierarchy level.
         self.class_map = []
-        # 记录导入
+        # Record imports.
         self.imports = Imports()
 
     def get_nice_cls_name(self, attr_name: str, level=0) -> str:
-        """根据属性名获取一个合适的类名"""
+        """Get a suitable class name based on the attribute name."""
         cls_name = attr_name.title().replace('_', '')
         if cls_name in self.class_map:
-            # 重复则重命名，尾加 level
+            # If there's a duplication, rename by adding "level" to the end.
             cls_name = f'{cls_name}{level}'
         if cls_name == attr_name:
-            # 类名与属性名重名，则尾加下划线（此种情况现已不存在，因为属性名的首字母会置为小写）
+            # If there's a conflict between class name and attribute name, add an underscore to the end
+            # (this situation no longer exists, as the first letter of an attribute name is now converted to lowercase).
             cls_name = f'{cls_name}_'
         if keyword.iskeyword(cls_name):
-            # 是关键字（eg: None），则加下划线
+            # If it's a keyword (e.g., None), add an underscore.
             cls_name = f'{cls_name}_'
-        # 返回之前先记录
+        # Record before returning.
         return cls_name
 
     def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0) -> Class:
         """
-        :param dat: 列表 或者 字典
-        :param name: 主类名称
-        :param recursive: 是否递归生成
-        :param sort: 是否对属性列表进行排序
-        :param level: 层级，用以解决 类名 冲突问题
+        :param dat: List or dictionary.
+        :param name: Main class name.
+        :param recursive: Whether to generate recursively.
+        :param sort: Whether to sort the list of attributes.
+        :param level: Hierarchy, used to resolve conflicts in class names.
         """
         assert dat
         self.class_map.append(name)
@@ -259,15 +260,15 @@ class DatGen:
             dat = merge_list_dict(dat)
         except TypeError as e:
             pass
-        # 这些针对模块
+        # Used for recording imports.
         self.imports.dataclass = True
         self.imports.DatClass = True
-        # 存储类信息
+        # Store class information.
         obj = Class(name=name, sort=sort)
         for name, value in dat.items():
-            # 存储属性信息
+            # Store attribute information.
             attr = Attr(name, value)
-            # 如果是 列表 或者 字典，且递归为真，则递归处理
+            # If it is a list or dictionary, and recursion is true, then process recursively.
             if recursive and not_null(value) and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
                 nice_cls_name = self.get_nice_cls_name(attr.ok_name, level)
                 if isinstance(value, dict):
@@ -275,21 +276,22 @@ class DatGen:
                 elif attr.type_string == 'List[dict]':
                     self.imports.List = True
                     attr.type_string = f'List[{nice_cls_name}]'
-                # 递归处理
+                # Recursively process.
                 obj.classes.append(self.gen_datclass(value, nice_cls_name, recursive=True, sort=sort, level=level + 1))
-            # 如果类型是 Dict，则导入 Dict
+            # If the type is Dict, import Dict.
             if attr.type_string == 'Dict':
                 self.imports.Dict = True
             if attr.type_string.startswith('List'):
                 self.imports.List = True
-            # 如果默认值有 field，则导入 field
+            # If a default value exists for the field, import the field.
             if attr.default_string.startswith('field'):
                 self.imports.field = True
             obj.attrs.append(attr)
         return obj
 
     def gen_typed_dict(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0) -> DictClass:
-        """生成 "Response = TypedDict('Response', {'update_id': int, 'message': Message})" 形式的字典约束（代码提示）类"""
+        """Generate a dictionary constraint (code hint) class in the form of
+        "Response = TypedDict('Response', {'update_id': int, 'message': Message})"."""
         assert dat
         try:
             dat = merge_list_dict(dat)

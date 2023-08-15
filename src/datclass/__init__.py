@@ -23,10 +23,10 @@ try:
 except ImportError:
     from typing_extensions import get_origin, get_args
 
-# 常量
+# Original Constructor Name
 _ORIGINAL_INIT = '__datclass_init__'
 
-# 日志
+# Internal logs
 _log = logging.getLogger('datclass')
 _handler = logging.StreamHandler()
 _handler.setFormatter(
@@ -42,12 +42,12 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
                  ok_identifier: Callable[[str], str] = get_ok_identifier):
     def __datclass_init__(obj, *args, **kwargs):
         cls = obj.__class__
-        # 任意字段名映射为合法 Python 字段名
+        # Map any field name to a valid Python field name.
         if kwargs:
             kwargs = {cls.__rename_attrs__.get(k, k): v for k, v in kwargs.items()}
-        # 调用原构造函数
+        # Call the original constructor.
         getattr(obj, _ORIGINAL_INIT)(*args, **{k: kwargs.pop(k) for k in obj.__dataclass_fields__ if k in kwargs})
-        # 扩展字段或者打印缺失字段日志，并且有未定义的字段
+        # Extend fields or log missing fields, including undefined fields.
         if (extra or log) and kwargs:
             for attr, value in kwargs.items():
                 ok_attr = ok_identifier(attr)
@@ -99,7 +99,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
                         setattr(self, attr_name,
                                 [i if is_dataclass(i) else item_type(**i) for i in getattr(self, attr_name) or []])
 
-        # 原始字段名 -> 重命名之后的合法 Python 字段名
+        # Original field name -> Valid Python field name after renaming
         __rename_attrs__: ClassVar[Dict[str, str]] = {}
 
         @classmethod

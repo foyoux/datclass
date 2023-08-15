@@ -15,24 +15,25 @@ def get_md5_identifier(name, length=8):
 
 
 def get_ok_identifier(name: str):
-    # 查询缓存
+    # Query the cache.
     if name in _NAME_MAP:
         return _NAME_MAP[name]
 
-    # 处理双(多)下划线开头字段，替换为一个
+    # Process fields starting with double (or multiple) underscores by replacing them with a single underscore.
     if name.startswith('__'):
         name = '_' + name.lstrip('_')
 
-    # 如果是关键字，则加 '_' 后缀
+    # If it's a keyword, add an '_' suffix.
     if keyword.iskeyword(name):
         s = f'{name}_'
     elif name.isidentifier():
-        # 关键字是合法标识符，所以先判断关键字，再判断标识符
+        # Keywords are valid identifiers, so first check for keywords, and then check for identifiers.
         s = name
     else:
-        # 先替换 "-" 为 "_"
+        # First, replace '-' with '_'.
         name = name.replace('-', '_')
-        # 不是标准标识符，过滤掉除 下划线、大小写字母、数字 的其他字符
+        # If it's not a standard identifier, filter out characters other than underscores,
+        # lowercase letters, uppercase letters, and numbers.
         s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
         if s:
             if s[0] in string.digits:
@@ -44,10 +45,10 @@ def get_ok_identifier(name: str):
         else:
             s = get_md5_identifier(name)
 
-    # 将首字母转为小写
+    # Convert the first letter to lowercase.
     if s[0] in string.ascii_uppercase:
         s = s[0].lower() + s[1:]
 
-    # 返回之前进行缓存
+    # Cache before returning.
     _NAME_MAP[name] = s
     return s
