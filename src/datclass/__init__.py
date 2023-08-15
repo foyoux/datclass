@@ -72,15 +72,10 @@ def get_datclass(
             if isinstance(v, __datclass__):
                 v = v.to_dict(ignore_none=ignore_none)
             else:
-                if ignore_none:
-                    v = asdict(v, dict_factory=lambda d1: {k1: v1 for k1, v1 in d1 if v1 is not None})
-                else:
-                    v = asdict(v)
+                dict_factory = (lambda d: {k: v1 for k, v1 in d if v1 is not None}) if ignore_none else None
+                v = asdict(v, dict_factory=dict_factory)
         elif isinstance(v, list):
-            vl = []
-            for i in v:
-                vl.append(__to_value__(i, ignore_none=ignore_none))
-            return vl
+            v = [__to_value__(i, ignore_none=ignore_none) for i in v]
         return v
 
     # noinspection PyPep8Naming
