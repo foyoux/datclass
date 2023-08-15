@@ -113,7 +113,8 @@ if __name__ == '__main__':
 详见 `datclass` 命令
 
 ```sh
-datclass -h
+$ datclass -h
+
 ```
 
 ### 示例 1
