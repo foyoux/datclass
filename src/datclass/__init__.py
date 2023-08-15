@@ -16,7 +16,7 @@ from dataclasses import dataclass, is_dataclass, asdict, astuple
 from pathlib import Path
 from typing import Dict, ClassVar, Callable
 
-from datclass.utils import get_ok_identifier
+from .utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args

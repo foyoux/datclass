@@ -2,8 +2,8 @@ import keyword
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
-from datclass import main
-from datclass.utils import get_ok_identifier
+from . import main
+from .utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args
