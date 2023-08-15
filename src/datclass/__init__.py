@@ -38,8 +38,16 @@ _handler.setFormatter(
 _log.addHandler(_handler)
 
 
-def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
-                 ok_identifier: Callable[[str], str] = get_ok_identifier):
+def get_datclass(
+        nested: bool = True, extra: bool = True, log: bool = True,
+        ok_identifier: Callable[[str], str] = get_ok_identifier,
+        dataclass_kwargs: dict = None,
+):
+    if dataclass_kwargs is None:
+        dataclass_kwargs = {}
+
+    frozen = dataclass_kwargs.get('frozen', False)
+
     def __datclass_init__(obj, *args, **kwargs):
         cls = obj.__class__
         # Map any field name to a valid Python field name.
@@ -54,7 +62,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
                 if log:
                     _log.warning(f'{cls.__module__}.{cls.__name__}({ok_attr}: {type(value).__name__} = {value!r})'
                                  f'{"" if ok_attr == attr else f"  # rename from {attr!r}"}')
-                if extra:
+                if not frozen and extra:
                     setattr(obj, ok_attr, value)
                     if ok_attr != attr and ok_attr not in obj.__rename_attrs__:
                         obj.__rename_attrs__[attr] = ok_attr
@@ -76,7 +84,7 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
         return v
 
     # noinspection PyPep8Naming
-    @dataclass
+    @dataclass(**dataclass_kwargs)
     class __datclass__:
         def __new__(cls, *args, **kwargs):
             if not hasattr(cls, _ORIGINAL_INIT):
@@ -107,17 +115,26 @@ def get_datclass(nested: bool = True, extra: bool = True, log: bool = True,
             return cls(**json.loads(text))
 
         def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False) -> str:
-            return json.dumps(self.to_dict(ignore_none=ignore_none), ensure_ascii=ensure_ascii, indent=indent,
-                              sort_keys=sort_keys)
+            data_dict = self.to_dict(ignore_none=ignore_none)
+            return json.dumps(data_dict, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys)
 
         def to_dict(self, ignore_none=False) -> dict:
-            d = {}
-            revert_rename_attrs = {v: k for k, v in self.__rename_attrs__.items()}
-            for k, v in self.__dict__.items():
-                if ignore_none and v is None:
+            result_dict = {}
+            rename_attrs_inverse = {v: k for k, v in self.__rename_attrs__.items()}
+            object_attrs = {}
+
+            if hasattr(self, '__slots__'):
+                object_attrs.update({k: getattr(self, k) for k in self.__slots__})
+            object_attrs.update(self.__dict__)
+
+            for attr_name, attr_value in object_attrs.items():
+                if ignore_none and attr_value is None:
                     continue
-                d[revert_rename_attrs.get(k, k)] = __to_value__(v, ignore_none=ignore_none)
-            return d
+                target_attr_name = rename_attrs_inverse.get(attr_name, attr_name)
+                transformed_value = __to_value__(attr_value, ignore_none=ignore_none)
+                result_dict[target_attr_name] = transformed_value
+
+            return result_dict
 
         def to_tuple(self) -> tuple:
             return astuple(self)
