@@ -6,6 +6,8 @@ python dataclass nested & extra
 
 ## 安装
 
+[![python version](https://img.shields.io/pypi/pyversions/datclass)](https://pypi.org/project/datclass/)  [![Downloads](https://static.pepy.tech/personalized-badge/datclass?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/datclass)
+
 ```sh
 pip install -U datclass
 pip install git+ssh://git@github.com/foyoux/datclass.git
