@@ -2,7 +2,7 @@
 
 python dataclass nested & extra
 
-扩展官方 dataclass，支持嵌套和额外字段
+扩展官方 [dataclass](https://docs.python.org/zh-cn/3/library/dataclasses.html)，支持嵌套和扩展字段
 
 ## 安装
 
