@@ -1,68 +1,14 @@
-import argparse
-import hashlib
-import json
 import keyword
-import os
-import string
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Dict
-from typing import List
-from typing import Union
+from typing import Dict, List, Union
 
-# noinspection PyProtectedMember
-from datclass import __version__
+from datclass import main
+from datclass.utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args
 except ImportError:
     from typing_extensions import get_origin, get_args
-
-_NAME_MAP = {}
-
-
-def get_md5_identifier(name, length=8):
-    s = hashlib.md5(name.encode()).hexdigest()
-    return f'a_{s[:length]}'  # attribute
-
-
-def get_ok_identifier(name: str):
-    # 查询缓存
-    if name in _NAME_MAP:
-        return _NAME_MAP[name]
-
-    # 处理双(多)下划线开头字段，替换为一个
-    if name.startswith('__'):
-        name = '_' + name.lstrip('_')
-
-    # 如果是关键字，则加 '_' 后缀
-    if keyword.iskeyword(name):
-        s = f'{name}_'
-    elif name.isidentifier():
-        # 关键字是合法标识符，所以先判断关键字，再判断标识符
-        s = name
-    else:
-        # 先替换 "-" 为 "_"
-        name = name.replace('-', '_')
-        # 不是标准标识符，过滤掉除 下划线、大小写字母、数字 的其他字符
-        s = ''.join(filter(lambda c: c in '_' + string.ascii_letters + string.digits, name))
-        if s:
-            if s[0] in string.digits:
-                s = f'a_{s}'  # attribute
-            elif keyword.iskeyword(s):
-                s = f'{s}_'
-            elif not s.isidentifier():
-                s = get_md5_identifier(name)
-        else:
-            s = get_md5_identifier(name)
-
-    # 将首字母转为小写
-    if s[0] in string.ascii_uppercase:
-        s = s[0].lower() + s[1:]
-
-    # 返回之前进行缓存
-    _NAME_MAP[name] = s
-    return s
 
 
 def get_value_type(v, none_type=str):
@@ -367,76 +313,6 @@ class DatGen:
                 self.imports.List = True
             obj.attr_list.append(attr)
         return obj
-
-
-def main():
-    epilog = f'%(prog)s({__version__}) by foyoux(https://github.com/foyoux/datclass)'
-    parser = argparse.ArgumentParser(prog='datclass', description='generate datclass & support nested and extra',
-                                     epilog=epilog)
-    parser.add_argument('-v', '--version', action='version', version=epilog)
-
-    parser.add_argument('-n', '--name', help='main dat class name', default='Object')
-    parser.add_argument('-o', '--output', help='output file - *.py')
-    parser.add_argument('-d', '--dict', help='generate TypedDict class', action='store_true')
-    parser.add_argument('-S', '--no-sort', help='sort attrs', action='store_false')
-    parser.add_argument('-R', '--no-recursive', dest='recursive', help='not recursive generate dat class',
-                        action='store_false')
-    parser.add_argument('file', nargs='?', help='input file - likes-json')
-
-    args = parser.parse_args()
-
-    name = args.name
-    recursive = args.recursive
-    input_file = args.file
-    output_file = args.output
-    sort = args.no_sort
-
-    if input_file:
-        f = Path(input_file)
-        if not f.exists():
-            print(f'{f.absolute()} not exists')
-            return
-        text = f.read_text(encoding='utf8')
-    else:
-        print(f'Please paste the JSON/DICT string - {"Ctrl-Z" if os.name == "nt" else "Ctrl-D"} Return')
-        data = []
-        try:
-            while True:
-                data.append(input())
-        except EOFError:
-            text = '\n'.join(data)
-        except KeyboardInterrupt:
-            print('\n🎉 Bye-Bye')
-            return
-
-    try:
-        body = json.loads(text)
-    except json.JSONDecodeError:
-        # noinspection PyBroadException
-        try:
-            body = eval(text)
-        except Exception as e:
-            print('\nInvalid JSON/DICT data', e)
-            return
-
-    gen = DatGen()
-
-    if args.dict:
-        codes = gen.gen_typed_dict(body, name, recursive, sort=sort).codes
-    else:
-        codes = gen.gen_datclass(body, name, recursive, sort=sort).codes
-
-    dat = '\n'.join(gen.imports.codes + codes + [''])
-
-    if output_file:
-        f = Path(output_file)
-        f.parent.mkdir(exist_ok=True, parents=True)
-        f.write_text(dat, encoding='utf8')
-    else:
-        print()
-        print(dat)
-
-    print('🎉 Generate successful')
 
 
 if __name__ == '__main__':

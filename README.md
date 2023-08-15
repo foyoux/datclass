@@ -104,3 +104,52 @@ if __name__ == '__main__':
     assert user.to_str() == s
 
 ```
+
+## 自动生成 `DatClass`
+
+详见 `datclass` 命令
+
+```sh
+datclass -h
+```
+
+### 示例 1
+
+输入 user.json
+
+```json
+{
+  "Name": "foo",
+  "Age": 18,
+  "123#$^%^%*": "test rename attrs"
+}
+```
+
+执行命令
+
+```sh
+$ datclass -o user.py user.json
+
+```
+
+输出 user.py
+
+```py
+from dataclasses import dataclass
+
+from datclass import DatClass
+
+
+@dataclass
+class Object(DatClass):
+    a_123: str = None  # rename from '123#$^%^%*'
+    age: int = None  # rename from 'Age'
+    name: str = None  # rename from 'Name'
+
+    __rename_attrs__ = {
+        'Name': 'name',
+        'Age': 'age',
+        '123#$^%^%*': 'a_123',
+    }
+
+```
