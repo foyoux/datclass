@@ -26,7 +26,7 @@ from typing import List
 from datclass import DatClass
 
 
-# Custom `dataclass`
+# Custom `DatClass`
 # from datclass import get_datclass
 # Missing fields will not be logged.
 # DatClass = get_datclass(log=False)
@@ -46,26 +46,37 @@ class Group(DatClass):
 
 if __name__ == '__main__':
     user1 = User(name='foo', age=18)
+    # Saving a data class to a file.
     user1.to_file('user.json')
+    # Adding some control parameters.
     user1.to_file('user.json', indent=4, ignore_none=True, sort_keys=True)
 
+    # Creating a data class from a dict.
     user2 = User(**{'name': 'bar', 'age': 20})
+    # To convert a data class to a dictionary, you can support extended fields.
+    # You can also use the official asdict function, but it cannot export extended fields.
     dict1 = user2.to_dict()
+    # 'ignore_none' is used to ignore values that are None.
     dict2 = user2.to_dict(ignore_none=True)
 
+    # Creating a data class from a string.
     user3 = User.from_str('{"name": "baz", "age": 22}')
+    # Convert the data class to a JSON string.
     dict3 = user3.to_str()
     dict4 = user3.to_str(indent=4, ignore_none=True)
 
+    # Creating a data class from a file.
     user4 = User.from_file('user.json')
     tuple4 = user4.to_tuple()
 
+    # Nested data classes
     grp = Group(name='group1', users=[user1, user2, user3, user4])
     grp.to_file('group.json', indent=4, ignore_none=True, sort_keys=True)
 
     for user in grp.users:
         print(user.name, user.age)
 
+    # Extending fields
     user = {'name': 'foo', 'age': 18, 'sex': 1}
     user5 = User(**user)
     assert user5.to_dict() == user
