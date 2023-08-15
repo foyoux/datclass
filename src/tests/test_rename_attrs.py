@@ -6,18 +6,19 @@ from datclass import DatClass
 
 @dataclass
 class User(DatClass):
-    Name: str
-    Age: int
+    name: str
+    age: int
+    attr_123: str
 
     # 重命名字段
-    __rename_attrs: ClassVar[Dict[str, str]] = {
+    __rename_attrs__: ClassVar[Dict[str, str]] = {
         'Name': 'name',
         'Age': 'age',
         '123#$^%^%*': 'attr_123'
     }
 
     # 这样写也是可以的
-    # __rename_attrs = {
+    # __rename_attrs__ = {
     #     'Name': 'name',
     #     'Age': 'age',
     #     '123#$^%^%*': 'attr_123',
@@ -32,8 +33,9 @@ def test_rename_attrs():
 
 @dataclass
 class User2(DatClass):
-    Name: str
-    Age: int
+    name: str
+    age: int
+    attr_123: str
 
     # 重命名字段
     # __rename_attrs: ClassVar[Dict[str, str]] = {
@@ -43,7 +45,7 @@ class User2(DatClass):
     # }
 
     # 这样写也是可以的
-    __rename_attrs = {
+    __rename_attrs__ = {
         'Name': 'name',
         'Age': 'age',
         '123#$^%^%*': 'attr_123',
