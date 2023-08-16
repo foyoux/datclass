@@ -1,3 +1,9 @@
+"""
+`datclass` addresses two main issues:
+1. `dataclasses.dataclass` cannot recursively convert nested dataclasses.
+2. It raises an exception when undefined fields are encountered.
+"""
+
 __title__ = 'datclass'
 __author__ = 'foyoux'
 __version__ = '0.0.1'
@@ -42,10 +48,14 @@ def get_datclass(
         nested: bool = True, extra: bool = True, log: bool = True,
         ok_identifier: Callable[[str], str] = get_ok_identifier,
 ):
-    if dataclass_kwargs is None:
-        dataclass_kwargs = {}
+    """Get a decorator that can be used to convert a dataclass to a datclass.
 
-    frozen = dataclass_kwargs.get('frozen', False)
+    :param nested: Whether to recursively convert nested dataclasses.
+    :param extra: Whether to extend fields.
+    :param log: Whether to log missing fields, including undefined fields.
+    :param ok_identifier: A function that maps any field name to a valid Python field name.
+    :return: A class that extends a dataclass.
+    """
 
     def __datclass_init__(obj, *args, **kwargs):
         cls = obj.__class__
