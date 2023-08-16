@@ -124,11 +124,11 @@ def get_datclass(
             return cls(**json.loads(text))
 
         def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False,
-                   recursive_ignore=False) -> str:
+                   recursive_ignore=True) -> str:
             data_dict = self.to_dict(ignore_none=ignore_none, recursive_ignore=recursive_ignore)
             return json.dumps(data_dict, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys)
 
-        def to_dict(self, ignore_none=False, recursive_ignore=False) -> dict:
+        def to_dict(self, ignore_none=False, recursive_ignore=True) -> dict:
             result_dict = {}
             object_attrs = {}
             rename_attrs_inverse = {v: k for k, v in self.__rename_attrs__.items()}
