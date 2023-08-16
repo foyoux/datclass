@@ -30,6 +30,7 @@ except ImportError:
     from typing_extensions import get_origin, get_args
 
 # Original Constructor Name
+# Naming should follow the conventions in `dataclasses.dataclass`, such as `_FIELDS`, `_PARAMS`, etc.
 _ORIGINAL_INIT_NAME = '__datclass_init__'
 
 # Internal logs
@@ -87,6 +88,12 @@ def get_datclass(
                         obj.__rename_attrs__[attr] = ok_attr
 
     def __to_item__(v, ignore_none=False):
+        """Convert v to a dictionary or a list.
+
+        :param v:
+        :param ignore_none: Ignore values that are None.
+        :return:
+        """
         if isinstance(v, __datclass__):
             v = v.to_dict(ignore_none=ignore_none)
         elif isinstance(v, list):
@@ -96,13 +103,18 @@ def get_datclass(
     # noinspection PyPep8Naming
     class __datclass__:
         def __new__(cls, *args, **kwargs):
+            """Modify the `__init__` function to support extended attributes."""
             if not hasattr(cls, _ORIGINAL_INIT_NAME):
+                # Each time an object is instantiated, it enters the `__new__` method;
+                # let's add a conditional check here.
                 setattr(cls, _ORIGINAL_INIT_NAME, cls.__init__)
                 setattr(cls, '__init__', __datclass_init__)
             return super().__new__(cls)
 
         # noinspection PyUnusedLocal
         def __post_init__(self, *args, **kwargs):
+            """Handling nested dataclasses. The `__post_init__` in subclasses must call this method,
+            otherwise nested dataclasses cannot be processed."""
             if not nested:
                 return
             for attr_name, field in self.__dataclass_fields__.items():  # type: ignore
@@ -121,14 +133,30 @@ def get_datclass(
 
         @classmethod
         def from_str(cls, text: str):
+            """Create an instance from a JSON string."""
             return cls(**json.loads(text))
 
         def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False,
                    recursive_ignore=True) -> str:
+            """Convert an instance to a JSON string.
+
+            :param ensure_ascii: same as json dumps
+            :param indent: same as json dumps
+            :param ignore_none: Ignore values that are None.
+            :param sort_keys: same as json dumps
+            :param recursive_ignore: Ignore values that are None recursively.
+            :return:
+            """
             data_dict = self.to_dict(ignore_none=ignore_none, recursive_ignore=recursive_ignore)
             return json.dumps(data_dict, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys)
 
         def to_dict(self, ignore_none=False, recursive_ignore=True) -> dict:
+            """Convert an instance to a dictionary.
+
+            :param ignore_none: Ignore values that are None.
+            :param recursive_ignore: Ignore values that are None recursively.
+            :return:
+            """
             result_dict = {}
             object_attrs = {}
             rename_attrs_inverse = {v: k for k, v in self.__rename_attrs__.items()}
@@ -148,11 +176,22 @@ def get_datclass(
 
         @classmethod
         def from_file(cls, file_path: str, encoding: str = 'utf8'):
+            """Create an instance from a JSON file."""
             text = Path(file_path).read_text(encoding=encoding)
             return cls.from_str(text)
 
         def to_file(self, file_path: str, encoding: str = 'utf8', ensure_ascii=True, indent=None, ignore_none=False,
                     sort_keys=False):
+            """Convert an instance to a JSON file.
+
+            :param file_path: Save file path.
+            :param encoding: same as json dumps
+            :param ensure_ascii: same as json dumps
+            :param indent: same as json dumps
+            :param ignore_none: Ignore values that are None.
+            :param sort_keys: same as json dumps
+            :return:
+            """
             Path(file_path).write_text(self.to_str(ensure_ascii=ensure_ascii, indent=indent, ignore_none=ignore_none,
                                                    sort_keys=sort_keys), encoding=encoding)
 
@@ -163,6 +202,7 @@ DatClass = get_datclass()
 
 
 def main():
+    """Automatically generate DataClass script entry."""
     epilog = f'%(prog)s({__version__}) by foyoux(https://github.com/foyoux/datclass)'
     parser = argparse.ArgumentParser(prog='datclass', description='generate datclass & support nested and extra',
                                      epilog=epilog)
