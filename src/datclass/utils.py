@@ -14,7 +14,7 @@ def get_md5_identifier(name, length=8):
     return f'a_{s[:length]}'  # attribute
 
 
-def get_ok_identifier(name: str):
+def get_identifier(name: str):
     # Query the cache.
     if name in _NAME_MAP:
         return _NAME_MAP[name]
@@ -52,3 +52,8 @@ def get_ok_identifier(name: str):
     # Cache before returning.
     _NAME_MAP[name] = s
     return s
+
+
+def write_file(file_path, content, encoding='utf-8'):
+    with open(file_path, 'w', encoding=encoding) as f:
+        f.write(content)

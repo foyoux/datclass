@@ -1,6 +1,6 @@
 # datclass
 
-python dataclass nested & extra
+python dataclass nested & extra attrs
 
 Extending the official [dataclass](https://docs.python.org/zh-cn/3/library/dataclasses.html) to support nested and extended fields.
 

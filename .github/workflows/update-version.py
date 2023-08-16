@@ -10,7 +10,7 @@ def main():
     if not tag.startswith('v'):
         raise ValueError(f'tag({tag}) not starts with "v"')
     print(f'tag: {tag}')
-    init = Path('src/datclass/__init__.py')
+    init = Path('src/datclass/__version__.py')
     init.write_text(re.sub(
         r'^__version__ = [\'"]\d+\.\d+\.\d+[\'"]$',
         f"__version__ = '{tag[1:]}'",

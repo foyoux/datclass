@@ -1,9 +1,15 @@
+import argparse
+import json
 import keyword
-from dataclasses import dataclass, field
-from typing import Dict, List, Union
+import os
+from dataclasses import dataclass
+from dataclasses import field
+from pathlib import Path
+from typing import Dict
+from typing import List, Union
 
-from datclass import main
-from datclass.utils import get_ok_identifier
+from datclass.__version__ import *
+from datclass.utils import write_file, get_identifier
 
 try:
     from typing import get_origin, get_args
@@ -153,7 +159,7 @@ class Attr:
     default_string: str = None
 
     def __post_init__(self):
-        self.ok_name = get_ok_identifier(self.name)
+        self.ok_name = get_identifier(self.name)
         self.comment = '' if self.name == self.ok_name else f'  # rename from {self.name!r}'
         self.value_type = get_value_type(self.value)
         self.default_string = get_type_default(self.value_type)
@@ -316,7 +322,7 @@ class Generator:
         for name, value in dat.items():
             attr = DictAttr(name, value)
             if recursive and not_null(value) and (isinstance(value, dict) or attr.type_string == 'List[dict]'):
-                nice_cls_name = self.get_nice_cls_name(get_ok_identifier(name), level)
+                nice_cls_name = self.get_nice_cls_name(get_identifier(name), level)
                 if isinstance(value, dict):
                     attr.type_string = nice_cls_name
                 elif attr.type_string == 'List[dict]':
@@ -329,6 +335,145 @@ class Generator:
                 self.imports.List = True
             obj.attr_list.append(attr)
         return obj
+
+
+@dataclass
+class _Arguments:
+    class_name: str
+    recursive: bool
+    input_file: str
+    output_file: str
+    disable_sort: bool
+    dict_class: bool
+    dataclass_kwargs: Dict
+
+
+def add_arguments(argument_parser):
+    argument_parser.add_argument(
+        '-c', '--class-name',
+        help='Name of the main class in the code_string (default: %(default)s)',
+        default='Object'
+    )
+    argument_parser.add_argument(
+        '-o', '--output-file',
+        help='Output file for the generated code (*.py)',
+        metavar='output_file.py'
+    )
+    argument_parser.add_argument(
+        '-d', '--dict',
+        help='Generate a TypedDict class',
+        action='store_true'
+    )
+    argument_parser.add_argument(
+        '-S', '--disable-sort',
+        help='Disable attribute sorting',
+        action='store_false'
+    )
+    argument_parser.add_argument(
+        '-R', '--no-recursive', dest='recursive',
+        help='Do not generate "code_string" classes recursively',
+        action='store_false'
+    )
+    argument_parser.add_argument(
+        '--dataclass-kwargs', default='{}',
+        help='Dataclass decorator parameters should be provided as a JSON string.',
+        type=json.loads, metavar='{"slots": true}'
+    )
+    argument_parser.add_argument(
+        'input_file', nargs='?', metavar='input_file.json',
+        help='Input file in JSON-like format or Python dict/list'
+    )
+
+
+def add_example(args, code_string):
+    code_string += f"""
+
+    if __name__ == '__main__':
+        obj = {args.class_name}.from_file({os.path.abspath(args.input_file)!r})
+        print(obj)
+"""
+    return code_string
+
+
+def read_and_parse_input(args):
+    """If error occurs, return None."""
+    # Read input
+    if args.input_file:
+        input_path = Path(args.input_file)
+        if not input_path.exists():
+            print(f'Error: The file {input_path.absolute()!r} does not exist.')
+            return None
+        text = input_path.read_text(encoding='utf8')
+    else:
+        separator = 'Ctrl-Z' if os.name == 'nt' else 'Ctrl-D'
+        user_prompt = f'Please paste the JSON/DICT string and press {separator!r} followed by Return:'
+        print(user_prompt)
+        data_lines = []
+        try:
+            while True:
+                data_lines.append(input())
+        except EOFError:
+            text = '\n'.join(data_lines)
+        except KeyboardInterrupt:
+            print('\nGoodbye! 👋')
+            return None
+    # Parse input to dict
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            data = eval(text)
+        except Exception as e:
+            print('\nInvalid JSON/DICT string', e)
+            return None
+    return data
+
+
+def print_generated_result(code_string):
+    print('🎉 Generated result:')
+    print('-' * 80)
+    print(code_string)
+
+
+def main():
+    """Automatically generate DataClass script entry."""
+    # Create argument parser
+    epilog = f'%(prog)s({__version__}) by foyoux({__url__})'
+    argument_parser = argparse.ArgumentParser(prog=__title__, description=__description__, epilog=epilog)
+    argument_parser.add_argument('-v', '--version', action='version', version=epilog)
+
+    # Add arguments
+    add_arguments(argument_parser)
+
+    # Parse arguments - sys.args[1:]
+    args: _Arguments = argument_parser.parse_args()  # type: ignore
+
+    # Get input data
+    data = read_and_parse_input(args)
+    if data is None:
+        return
+
+    # Generate code
+    gen = Generator()
+
+    if args.dict_class:
+        code_lines = gen.gen_typed_dict(data, args.class_name, args.recursive, sort=args.disable_sort).codes
+    else:
+        code_lines = gen.gen_datclass(data, args.class_name, args.recursive, sort=args.disable_sort,
+                                      dataclass_kwargs=args.dataclass_kwargs).codes
+
+    code_string = '\n'.join(gen.imports.codes + code_lines + [''])
+
+    # add example code
+    code_string = add_example(args, code_string)
+
+    # Output
+    if args.output_file:
+        write_file(args.output_file, code_string)
+    else:
+        print_generated_result(code_string)
+
+    print('🎉 Generation successful')
 
 
 if __name__ == '__main__':
