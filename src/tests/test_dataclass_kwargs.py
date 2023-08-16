@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from datclass import get_datclass
 
-DatClass = get_datclass(dataclass_kwargs={'frozen': True})
+DatClass = get_datclass()
 
 
 @dataclass(frozen=True)

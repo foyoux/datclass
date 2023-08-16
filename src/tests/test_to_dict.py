@@ -249,9 +249,15 @@ def test_to_dict_extra2(testdata2):
 
 
 @dataclass
-class A11(DatClass):
+class A00(DatClass):
     a: str = None
     b: str = None
+
+
+@dataclass
+class A11(DatClass):
+    a: str = None
+    b: A00 = None
 
 
 @dataclass
@@ -261,7 +267,7 @@ class B22(DatClass):
 
 
 def test_recursive_ignore():
-    s = '{"a": null, "b": {"a": null, "b": "b"}}'
+    s = '{"a": null, "b": {"a": null, "b": {"a": null, "b": null}}}'
     b = B22.from_str(s)
-    assert b.to_str(ignore_none=True) == '{"b": {"a": null, "b": "b"}}'
-    assert b.to_str(ignore_none=True, recursive_ignore=True) == '{"b": {"b": "b"}}'
+    assert b.to_str(ignore_none=True, recursive_ignore=False) == '{"b": {"a": null, "b": {"a": null, "b": null}}}'
+    assert b.to_str(ignore_none=True) == '{"b": {"b": {}}}'
