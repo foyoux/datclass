@@ -58,6 +58,13 @@ def get_datclass(
     """
 
     def __datclass_init__(obj, *args, **kwargs):
+        """A new constructor that extends the original constructor.
+
+        :param obj: Instances of a class that inherits from __dataclass__.
+        :param args:
+        :param kwargs:
+        :return:
+        """
         cls = obj.__class__
         # All code assumes that "cls" is a dataclass and a subclass of "__dataclass__",
         # eliminating the need for further checks.
