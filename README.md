@@ -67,7 +67,6 @@ if __name__ == '__main__':
 
     # Creating a data class from a file.
     user4 = User.from_file('user.json')
-    tuple4 = user4.to_tuple()
 
     # Nested data classes
     grp = Group(name='group1', users=[user1, user2, user3, user4])

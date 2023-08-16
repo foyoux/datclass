@@ -12,7 +12,7 @@ import argparse
 import json
 import logging
 import os
-from dataclasses import dataclass, is_dataclass, asdict, astuple
+from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Dict, ClassVar, Callable
 
@@ -67,19 +67,14 @@ def get_datclass(
                     if ok_attr != attr and ok_attr not in obj.__rename_attrs__:
                         obj.__rename_attrs__[attr] = ok_attr
 
-    def __to_value__(v, ignore_none=False):
-        if is_dataclass(v):
-            if isinstance(v, __datclass__):
-                v = v.to_dict(ignore_none=ignore_none)
-            else:
-                dict_factory = (lambda d: {k: v1 for k, v1 in d if v1 is not None}) if ignore_none else None
-                v = asdict(v, dict_factory=dict_factory)
+    def __to_item__(v, ignore_none=False):
+        if isinstance(v, __datclass__):
+            v = v.to_dict(ignore_none=ignore_none)
         elif isinstance(v, list):
-            v = [__to_value__(i, ignore_none=ignore_none) for i in v]
+            v = [__to_item__(i, ignore_none=ignore_none) for i in v]
         return v
 
     # noinspection PyPep8Naming
-    @dataclass(**dataclass_kwargs)
     class __datclass__:
         def __new__(cls, *args, **kwargs):
             if not hasattr(cls, _ORIGINAL_INIT):
@@ -109,30 +104,28 @@ def get_datclass(
         def from_str(cls, text: str):
             return cls(**json.loads(text))
 
-        def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False) -> str:
-            data_dict = self.to_dict(ignore_none=ignore_none)
+        def to_str(self, ensure_ascii=True, indent=None, ignore_none=False, sort_keys=False,
+                   recursive_ignore=False) -> str:
+            data_dict = self.to_dict(ignore_none=ignore_none, recursive_ignore=recursive_ignore)
             return json.dumps(data_dict, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys)
 
-        def to_dict(self, ignore_none=False) -> dict:
+        def to_dict(self, ignore_none=False, recursive_ignore=False) -> dict:
             result_dict = {}
-            rename_attrs_inverse = {v: k for k, v in self.__rename_attrs__.items()}
             object_attrs = {}
+            rename_attrs_inverse = {v: k for k, v in self.__rename_attrs__.items()}
 
             if hasattr(self, '__slots__'):
                 object_attrs.update({k: getattr(self, k) for k in self.__slots__})
             object_attrs.update(self.__dict__)
 
             for attr_name, attr_value in object_attrs.items():
-                if ignore_none and attr_value is None:
+                if attr_value is None and ignore_none:
                     continue
                 target_attr_name = rename_attrs_inverse.get(attr_name, attr_name)
-                transformed_value = __to_value__(attr_value, ignore_none=ignore_none)
+                transformed_value = __to_item__(attr_value, ignore_none=ignore_none and recursive_ignore)
                 result_dict[target_attr_name] = transformed_value
 
             return result_dict
-
-        def to_tuple(self) -> tuple:
-            return astuple(self)
 
         @classmethod
         def from_file(cls, file_path: str, encoding: str = 'utf8'):

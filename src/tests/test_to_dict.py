@@ -79,8 +79,8 @@ def test_to_str_ignore_none():
     t = XXCls.from_str(s)
     assert t.to_str(indent=4) == s
     assert t.to_dict() == json.loads(s)
-    assert t.to_str(ignore_none=True, indent=4) == s1
-    assert t.to_dict(ignore_none=True) == json.loads(s1)
+    assert t.to_str(ignore_none=True, recursive_ignore=True, indent=4) == s1
+    assert t.to_dict(ignore_none=True, recursive_ignore=True) == json.loads(s1)
 
 
 @dataclass
@@ -170,11 +170,11 @@ def test_to_dict_extra():
     obj = ExtraCls.from_str(s_none_1)
     assert obj.to_dict() == json.loads(s_none_1)
     assert obj.to_str(indent=2) == s_none_1
-    assert obj.to_str(indent=2, ignore_none=True) == s_none_2
+    assert obj.to_str(indent=2, ignore_none=True, recursive_ignore=True) == s_none_2
     obj = ExtraCls.from_str(s_extra)
-    assert obj.to_dict(ignore_none=True) == json.loads(s_extra)
-    assert obj.to_str(indent=2, ignore_none=True) == s_extra
-    assert obj.to_str(indent=2, ignore_none=True) == s_extra
+    assert obj.to_dict(ignore_none=True, recursive_ignore=True) == json.loads(s_extra)
+    assert obj.to_str(indent=2, ignore_none=True, recursive_ignore=True) == s_extra
+    assert obj.to_str(indent=2, ignore_none=True, recursive_ignore=True) == s_extra
 
 
 @dataclass
@@ -246,3 +246,22 @@ class XXCls123(DatClass):
 def test_to_dict_extra2(testdata2):
     obj = XXCls123(**testdata2)
     assert obj.to_dict() == testdata2
+
+
+@dataclass
+class A11(DatClass):
+    a: str = None
+    b: str = None
+
+
+@dataclass
+class B22(DatClass):
+    a: str = None
+    b: A11 = None
+
+
+def test_recursive_ignore():
+    s = '{"a": null, "b": {"a": null, "b": "b"}}'
+    b = B22.from_str(s)
+    assert b.to_str(ignore_none=True) == '{"b": {"a": null, "b": "b"}}'
+    assert b.to_str(ignore_none=True, recursive_ignore=True) == '{"b": {"b": "b"}}'
