@@ -102,7 +102,7 @@ def get_datclass(
                 origin = get_origin(field.type)
                 if origin is None and is_dataclass(field.type):
                     attr = getattr(self, attr_name)
-                    setattr(self, attr_name, attr if is_dataclass(attr) else field.type(**attr) if attr else None)
+                    setattr(self, attr_name, attr if is_dataclass(attr) else (field.type(**attr) if attr else None))
                     continue
                 for item_type in get_args(field.type):
                     if is_dataclass(item_type):
