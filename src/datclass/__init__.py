@@ -208,6 +208,14 @@ def main():
 
     dat = '\n'.join(gen.imports.codes + codes + [''])
 
+    # add example code
+    dat += f"""
+
+    if __name__ == '__main__':
+        obj = {name}.from_file({os.path.abspath(input_file)!r})
+        print(obj)
+"""
+
     if output_file:
         f = Path(output_file)
         f.parent.mkdir(exist_ok=True, parents=True)
