@@ -179,8 +179,11 @@ class Class:
         else:
             dataclass_kwargs = ''
         codes = [f'@dataclass{dataclass_kwargs}', f'class {self.name}(DatClass):']
-        for attr in sorted(self.attrs) if self.sort else self.attrs:  # type: ignore
-            codes.append(attr.code)
+        if self.attrs:
+            attrs = sorted(self.attrs) if self.sort else self.attrs  # type: ignore
+            codes.extend([attr.code for attr in attrs])
+        else:
+            codes.append('    pass')
         # Handling `__rename_attrs__`.
         rename_attrs = [attr for attr in self.attrs if attr.name != attr.ok_name]
         if rename_attrs:
@@ -219,15 +222,16 @@ class DictClass:
 
     @property
     def codes(self):
+        attrs = sorted(self.attr_list) if self.sort else self.attr_list  # type: ignore
         attr_string = ', '.join(
-            [attr.code for attr in (sorted(self.attr_list) if self.sort else self.attr_list)])  # type: ignore
+            [attr.code for attr in attrs])  # type: ignore
         codes = [f'{self.name} = TypedDict({self.name!r}, {{{attr_string}}})']
         for cls in self.classes:
             codes = cls.codes + codes
         return codes
 
 
-class DatGen:
+class Generator:
 
     def __init__(self):
         # Record imports, and when there's a duplicate, rename based on the hierarchy level.
@@ -265,7 +269,6 @@ class DatGen:
         if dataclass_kwargs is None:
             dataclass_kwargs = {}
 
-        assert dat
         self.class_map.append(name)
         try:
             dat = merge_list_dict(dat)

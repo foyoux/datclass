@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 from datclass import DatClass
-from datclass.__main__ import DatGen
+from datclass.__main__ import Generator
 
 dat = {
     'name': 'foyou',
@@ -28,6 +28,6 @@ def test_list_int():
 
 
 def test_gen_list_int():
-    gen = DatGen()
+    gen = Generator()
     gen.gen_datclass(dat)
     assert gen.imports.List == True

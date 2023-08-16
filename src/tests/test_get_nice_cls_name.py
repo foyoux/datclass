@@ -1,4 +1,4 @@
-from datclass.__main__ import DatGen
+from datclass.__main__ import Generator
 
 dat = """
 {
@@ -59,5 +59,5 @@ dat = """
 
 
 def test_underline():
-    g = DatGen()
+    g = Generator()
     assert g.get_nice_cls_name('forward_from') == 'ForwardFrom'

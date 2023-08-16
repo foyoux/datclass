@@ -1,4 +1,4 @@
-from datclass.__main__ import DatGen
+from datclass.__main__ import Generator
 
 data = {
     'product': {
@@ -9,7 +9,7 @@ data = {
 
 
 def test_main_class_name():
-    g = DatGen()
+    g = Generator()
     codes = g.gen_datclass(data, 'Product', recursive=True).codes
     assert codes == [
         '@dataclass',

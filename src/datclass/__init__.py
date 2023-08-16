@@ -198,8 +198,8 @@ def main():
             print('\nInvalid JSON/DICT data', e)
             return
 
-    from datclass.__main__ import DatGen
-    gen = DatGen()
+    from datclass.__main__ import Generator
+    gen = Generator()
 
     if args.dict:
         codes = gen.gen_typed_dict(body, name, recursive, sort=sort).codes
@@ -213,7 +213,7 @@ def main():
         f.parent.mkdir(exist_ok=True, parents=True)
         f.write_text(dat, encoding='utf8')
     else:
-        print()
+        print('🎉 Generate result:')
         print(dat)
 
     print('🎉 Generate successful')
