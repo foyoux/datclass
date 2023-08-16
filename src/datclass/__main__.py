@@ -2,8 +2,8 @@ import keyword
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
-from . import main
-from .utils import get_ok_identifier
+from datclass import main
+from datclass.utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args
@@ -170,10 +170,15 @@ class Class:
     sort: bool = None
     attrs: List[Attr] = field(default_factory=list)
     classes: List['Class'] = field(default_factory=list)
+    dataclass_kwargs: dict = field(default_factory=dict)
 
     @property
     def codes(self):
-        codes = [f'@dataclass', f'class {self.name}(DatClass):']
+        if self.dataclass_kwargs:
+            dataclass_kwargs = f'({", ".join([f"{k}={v!r}" for k, v in self.dataclass_kwargs.items()])})'
+        else:
+            dataclass_kwargs = ''
+        codes = [f'@dataclass{dataclass_kwargs}', f'class {self.name}(DatClass):']
         for attr in sorted(self.attrs) if self.sort else self.attrs:  # type: ignore
             codes.append(attr.code)
         # Handling `__rename_attrs__`.
@@ -246,14 +251,20 @@ class DatGen:
         # Record before returning.
         return cls_name
 
-    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0) -> Class:
+    def gen_datclass(self, dat: Union[list, dict], name='Object', recursive=True, sort=True, level=0,
+                     dataclass_kwargs: Dict = None) -> Class:
         """
         :param dat: List or dictionary.
         :param name: Main class name.
         :param recursive: Whether to generate recursively.
         :param sort: Whether to sort the list of attributes.
         :param level: Hierarchy, used to resolve conflicts in class names.
+        :param dataclass_kwargs: Pass to dataclass
         """
+        # Preprocess parameters.
+        if dataclass_kwargs is None:
+            dataclass_kwargs = {}
+
         assert dat
         self.class_map.append(name)
         try:
@@ -264,7 +275,7 @@ class DatGen:
         self.imports.dataclass = True
         self.imports.DatClass = True
         # Store class information.
-        obj = Class(name=name, sort=sort)
+        obj = Class(name=name, sort=sort, dataclass_kwargs=dataclass_kwargs)
         for name, value in dat.items():
             # Store attribute information.
             attr = Attr(name, value)

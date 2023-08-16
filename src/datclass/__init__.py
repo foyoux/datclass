@@ -16,7 +16,7 @@ from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Dict, ClassVar, Callable
 
-from .utils import get_ok_identifier
+from datclass.utils import get_ok_identifier
 
 try:
     from typing import get_origin, get_args
@@ -157,6 +157,10 @@ def main():
                         action='store_false')
     parser.add_argument('file', nargs='?', help='input file - likes-json')
 
+    # dataclass kwargs
+    parser.add_argument('--dataclass-kwargs', default='{}',
+                        help='Dataclass decorator parameters should be passed using a JSON string.', type=json.loads)
+
     args = parser.parse_args()
 
     name = args.name
@@ -164,6 +168,7 @@ def main():
     input_file = args.file
     output_file = args.output
     sort = args.no_sort
+    dataclass_kwargs = args.dataclass_kwargs
 
     if input_file:
         f = Path(input_file)
@@ -199,7 +204,7 @@ def main():
     if args.dict:
         codes = gen.gen_typed_dict(body, name, recursive, sort=sort).codes
     else:
-        codes = gen.gen_datclass(body, name, recursive, sort=sort).codes
+        codes = gen.gen_datclass(body, name, recursive, sort=sort, dataclass_kwargs=dataclass_kwargs).codes
 
     dat = '\n'.join(gen.imports.codes + codes + [''])
 
