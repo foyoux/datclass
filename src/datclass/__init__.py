@@ -24,7 +24,7 @@ except ImportError:
     from typing_extensions import get_origin, get_args
 
 # Original Constructor Name
-_ORIGINAL_INIT = '__datclass_init__'
+_ORIGINAL_INIT_NAME = '__datclass_init__'
 
 # Internal logs
 _log = logging.getLogger('datclass')
@@ -54,7 +54,7 @@ def get_datclass(
         if kwargs:
             kwargs = {cls.__rename_attrs__.get(k, k): v for k, v in kwargs.items()}
         # Call the original constructor.
-        getattr(obj, _ORIGINAL_INIT)(*args, **{k: kwargs.pop(k) for k in obj.__dataclass_fields__ if k in kwargs})
+        getattr(obj, _ORIGINAL_INIT_NAME)(*args, **{k: kwargs.pop(k) for k in obj.__dataclass_fields__ if k in kwargs})
         # Extend fields or log missing fields, including undefined fields.
         if (extra or log) and kwargs:
             for attr, value in kwargs.items():
@@ -77,8 +77,8 @@ def get_datclass(
     # noinspection PyPep8Naming
     class __datclass__:
         def __new__(cls, *args, **kwargs):
-            if not hasattr(cls, _ORIGINAL_INIT):
-                setattr(cls, _ORIGINAL_INIT, cls.__init__)
+            if not hasattr(cls, _ORIGINAL_INIT_NAME):
+                setattr(cls, _ORIGINAL_INIT_NAME, cls.__init__)
                 setattr(cls, '__init__', __datclass_init__)
             return super().__new__(cls)
 
