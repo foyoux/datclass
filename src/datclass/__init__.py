@@ -41,7 +41,6 @@ _log.addHandler(_handler)
 def get_datclass(
         nested: bool = True, extra: bool = True, log: bool = True,
         ok_identifier: Callable[[str], str] = get_ok_identifier,
-        dataclass_kwargs: dict = None,
 ):
     if dataclass_kwargs is None:
         dataclass_kwargs = {}
@@ -50,6 +49,9 @@ def get_datclass(
 
     def __datclass_init__(obj, *args, **kwargs):
         cls = obj.__class__
+        # All code assumes that "cls" is a dataclass and a subclass of "__dataclass__",
+        # eliminating the need for further checks.
+        frozen = cls.__dataclass_params__.frozen
         # Map any field name to a valid Python field name.
         if kwargs:
             kwargs = {cls.__rename_attrs__.get(k, k): v for k, v in kwargs.items()}
