@@ -116,7 +116,7 @@ def get_datclass(
     class Datclass:
         def __new__(cls, *args, **kwargs):
             """Modify the `__init__` function to support extended attributes."""
-            if not hasattr(cls, _ORIGINAL_INIT_NAME):
+            if _ORIGINAL_INIT_NAME not in cls.__dict__:
                 # Each time an object is instantiated, it enters the `__new__` method;
                 # let's add a conditional check here.
                 setattr(cls, _ORIGINAL_INIT_NAME, cls.__init__)

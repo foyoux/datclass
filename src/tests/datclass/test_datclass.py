@@ -1,3 +1,6 @@
+import dataclasses
+
+
 def test_datclass():
     from datclass import DatClass
 
@@ -8,6 +11,19 @@ def test_datclass():
     c2 = DatClass.from_str('{"a": 1, "b": {}}')
     d2 = c2.to_dict()
     assert d2 == {'a': 1, 'b': {}}
+
+    @dataclasses.dataclass()
+    class A0(DatClass):
+        pass
+
+    @dataclasses.dataclass
+    class A(A0):
+        a1: int = None
+        b1: int = None
+
+    a1 = A(a1=100, b1=200)
+    a2 = A.from_str('{"a1": 101, "b1": 201}')
+    a3 = A.from_str('{"a1": 101, "b1": 201, "c1": 998}')
 
 
 def test_get_datclass():
