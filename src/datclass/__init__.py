@@ -137,13 +137,9 @@ def get_datclass(
             if cls is Datclass:
                 # Handling Generic Types and Creating Objects Directly using DataClass.
                 for attr, value in kwargs.items():
-                    ok_attr = identifier_transform(attr)
                     if empty_dict_as_none and value == {}:
                         value = None
-                    setattr(self, ok_attr, value)
-                    # Record the renaming of fields.
-                    if ok_attr != attr and attr not in self.__rename_attrs__:
-                        self.__rename_attrs__[attr] = ok_attr
+                    setattr(self, attr, value)
                 return
 
             # Map any field name to a valid Python field name.
