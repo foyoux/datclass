@@ -142,7 +142,7 @@ def get_datclass(
                         value = None
                     setattr(self, ok_attr, value)
                     # Record the renaming of fields.
-                    if ok_attr != attr and ok_attr not in self.__rename_attrs__:
+                    if ok_attr != attr and attr not in self.__rename_attrs__:
                         self.__rename_attrs__[attr] = ok_attr
                 return
 
@@ -172,7 +172,7 @@ def get_datclass(
                     if not frozen and extra:
                         setattr(self, ok_attr, value)
                         # Record the renaming of fields.
-                        if ok_attr != attr and ok_attr not in self.__rename_attrs__:
+                        if ok_attr != attr and attr not in self.__rename_attrs__:
                             self.__rename_attrs__[attr] = ok_attr
 
         # noinspection PyUnusedLocal
