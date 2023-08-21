@@ -138,6 +138,8 @@ def get_datclass(
                 # Handling Generic Types and Creating Objects Directly using DataClass.
                 for attr, value in kwargs.items():
                     ok_attr = identifier_transform(attr)
+                    if empty_dict_as_none and value == {}:
+                        value = None
                     setattr(self, ok_attr, value)
                     # Record the renaming of fields.
                     if ok_attr != attr and ok_attr not in self.__rename_attrs__:
