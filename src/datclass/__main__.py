@@ -360,7 +360,7 @@ def add_arguments(argument_parser):
         metavar='output_file.py'
     )
     argument_parser.add_argument(
-        '-d', '--dict',
+        '-d', '--dict-class',
         help='Generate a TypedDict class',
         action='store_true'
     )
