@@ -388,9 +388,9 @@ def add_arguments(argument_parser):
 def add_example(args, code_string):
     code_string += f"""
 
-    if __name__ == '__main__':
-        obj = {args.class_name}.from_file({os.path.abspath(args.input_file)!r})
-        print(obj)
+if __name__ == '__main__':
+    obj = {args.class_name}.from_file({os.path.abspath(args.input_file)!r})
+    print(obj)
 """
     return code_string
 
