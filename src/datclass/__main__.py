@@ -385,16 +385,6 @@ def add_arguments(argument_parser):
     )
 
 
-def add_example(args, code_string):
-    code_string += f"""
-
-if __name__ == '__main__':
-    obj = {args.class_name}.from_file({os.path.abspath(args.input_file)!r})
-    print(obj)
-"""
-    return code_string
-
-
 def read_and_parse_input(args):
     """If error occurs, return None."""
     # Read input
@@ -465,7 +455,23 @@ def main():
     code_string = '\n'.join(gen.imports.codes + code_lines + [''])
 
     # add example code
-    code_string = add_example(args, code_string)
+    code_example = ''
+    if not args.dict_class:
+        if args.input_file is None:
+            code_example = f"""
+    
+if __name__ == '__main__':
+    obj = {args.class_name}.from_str({data!r})
+    print(obj)
+"""
+        else:
+            code_example = f"""
+    
+if __name__ == '__main__':
+    obj = {args.class_name}.from_file({os.path.abspath(args.input_file)!r})
+    print(obj)
+"""
+    code_string += code_example
 
     # Output
     if args.output_file:
