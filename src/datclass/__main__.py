@@ -476,6 +476,7 @@ if __name__ == '__main__':
     # Output
     if args.output_file:
         write_file(args.output_file, code_string)
+        print('Output file:', args.output_file)
     else:
         print_generated_result(code_string)
 
