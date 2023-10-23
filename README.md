@@ -130,7 +130,7 @@ $ datclass -h
 
 ### Example 1
 
-Input user.json
+Input `user.json`
 
 ```json
 {
@@ -168,3 +168,11 @@ class Object(DatClass):
     }
 
 ```
+
+---
+
+欢迎反馈和建议
+
+Feedback and suggestions welcome
+
+https://github.com/foyoux/datclass/issues/new
