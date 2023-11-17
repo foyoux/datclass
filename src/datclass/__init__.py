@@ -100,8 +100,10 @@ def get_datclass(
                 if hasattr(type_, '__datclass_init__'):
                     value = type_(**value)
         elif origin is list:
-            type_ = get_args(type_)[0]
-            value = [convert_attr_value(i, type_, cls) for i in value]
+            args_ = get_args(type_)
+            if args_:
+                type_ = args_[0]
+                value = [convert_attr_value(i, type_, cls) for i in value]
         elif origin is Union:
             types_ = get_args(type_)
             if len(types_) == 2 and NoneType in types_:
