@@ -85,19 +85,19 @@ def get_datclass(
         origin = get_origin(type_)
 
         if origin is None and isinstance(value, dict):
-            if hasattr(type_, '__datclass_init__'):
+            if hasattr(type_, DatClass.__datclass_init__.__name__):
                 value = type_(**value)
             elif isinstance(type_, ForwardRef):
                 type_ = sys.modules[cls.__module__].__dict__[type_.__forward_arg__]
-                if hasattr(type_, '__datclass_init__'):
+                if hasattr(type_, DatClass.__datclass_init__.__name__):
                     value = type_(**value)
             elif isinstance(type_, str):
                 type_ = sys.modules[cls.__module__].__dict__[type_]
-                if hasattr(type_, '__datclass_init__'):
+                if hasattr(type_, DatClass.__datclass_init__.__name__):
                     value = type_(**value)
             elif isinstance(type_, TypeVar):
                 type_ = type_.__bound__
-                if hasattr(type_, '__datclass_init__'):
+                if hasattr(type_, DatClass.__datclass_init__.__name__):
                     value = type_(**value)
         elif origin is list:
             args_ = get_args(type_)
