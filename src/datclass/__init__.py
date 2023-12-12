@@ -96,6 +96,7 @@ def get_datclass(
                 if hasattr(type_, DatClass.__datclass_init__.__name__):
                     value = type_(**value)
             elif isinstance(type_, TypeVar):
+                # Generic
                 type_ = type_.__bound__
                 if hasattr(type_, DatClass.__datclass_init__.__name__):
                     value = type_(**value)
