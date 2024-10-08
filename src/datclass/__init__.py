@@ -25,6 +25,7 @@ __all__ = [
 # Original Constructor Name
 # Naming should follow the conventions in `dataclasses.dataclass`, such as `_FIELDS`, `_PARAMS`, etc.
 _ORIGINAL_INIT_NAME = '__datclass_orig_init__'
+_FILE_PATH_ATTR_NAME = '__datclass_file_path__'
 
 # Internal logs
 _log = logging.getLogger(__title__)
@@ -219,7 +220,9 @@ def get_datclass(
         def from_file(cls, file_path: str, encoding: str = 'utf8'):
             """Create an instance from a JSON file."""
             text = Path(file_path).read_text(encoding=encoding)
-            return cls.from_str(text)
+            obj = cls.from_str(text)
+            setattr(obj, '__datclass_file_path__', file_path)
+            return obj
 
         def to_dict(self, ignore_none=False, recursive_ignore=True) -> dict:
             """Convert an instance to a dictionary.
@@ -277,8 +280,8 @@ def get_datclass(
             )
             return json_str
 
-        def to_file(self, file_path: str, encoding: str = 'utf8', ensure_ascii=True, indent=None, ignore_none=False,
-                    sort_keys=False):
+        def to_file(self, file_path: str = None, encoding: str = 'utf8', ensure_ascii=True, indent=None,
+                    ignore_none=False, sort_keys=False):
             """Convert an instance to a JSON file.
 
             :param file_path: Save file path.
@@ -289,6 +292,10 @@ def get_datclass(
             :param sort_keys: same as json dumps
             :return:
             """
+            if file_path is None:
+                file_path = getattr(self, _FILE_PATH_ATTR_NAME, None)
+                if file_path is None:
+                    raise ValueError('file_path is required.')
             Path(file_path).write_text(
                 self.to_str(
                     ensure_ascii=ensure_ascii,
